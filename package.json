@@ -1,0 +1,15 @@
+{
+  "name": "house-visualizer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PDF floor plan -> validated plan JSON -> three.js walkthrough with furniture",
+  "type": "module",
+  "scripts": {
+    "rasterize": "tools/rasterize.sh",
+    "validate": "node tools/validate.mjs",
+    "serve": "python3 -m http.server 8741 --bind 127.0.0.1"
+  },
+  "dependencies": {
+    "three": "^0.185.1"
+  }
+}

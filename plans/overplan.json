@@ -1,0 +1,92 @@
+{
+  "id": "overplan",
+  "name": "Överplan",
+  "units": "cm",
+  "source": {
+    "pdf": "assets/Arkitektritning - Block 26-29 Hustyp BAS A 102.pdf",
+    "drawing": "Robertshöjd, Göteborg — Block 26-29, hustyp BAS, ritn nr 102, skala 1:50, 1960",
+    "plan": "ÖVERPLAN (left half of sheet)",
+    "raster": "assets/raster/ (tools/rasterize.sh, 300 dpi)"
+  },
+  "envelope": { "width": 626, "depth": 910 },
+  "wallHeight": 250,
+  "walls": [
+    {
+      "id": "ext-south",
+      "from": [0, 10], "to": [626, 10], "thickness": 20,
+      "openings": [
+        { "type": "window", "offset": 110, "width": 66,  "sill": 120, "head": 210, "label": "F11 bad" },
+        { "type": "window", "offset": 227, "width": 79,  "sill": 90,  "head": 210, "label": "sovrum söder, öppningsbar del" },
+        { "type": "window", "offset": 306, "width": 143, "sill": 90,  "head": 210, "label": "F6H sovrum söder" }
+      ]
+    },
+    {
+      "id": "ext-north",
+      "from": [0, 900], "to": [626, 900], "thickness": 20,
+      "openings": [
+        { "type": "window", "offset": 58,  "width": 144, "sill": 90, "head": 210, "label": "F9H sovrum NV" },
+        { "type": "window", "offset": 253, "width": 79,  "sill": 90, "head": 210, "label": "sovrum NO, öppningsbar del" },
+        { "type": "window", "offset": 332, "width": 143, "sill": 90, "head": 210, "label": "F6V sovrum NO" }
+      ]
+    },
+    { "id": "ext-west", "from": [10, 0], "to": [10, 910], "thickness": 20, "openings": [] },
+    { "id": "ext-east", "from": [616, 0], "to": [616, 910], "thickness": 20, "openings": [] },
+    {
+      "id": "sovrum-nv-no-skiljevagg",
+      "from": [228.5, 504], "to": [228.5, 890], "thickness": 7,
+      "openings": []
+    },
+    {
+      "id": "norra-sovrummens-sodervagg",
+      "from": [20, 500.5], "to": [606, 500.5], "thickness": 7,
+      "openings": [
+        { "type": "door", "offset": 110, "width": 90, "sill": 0, "head": 210, "label": "D2V sovrum NV" },
+        { "type": "door", "offset": 225, "width": 90, "sill": 0, "head": 210, "label": "D2H sovrum NO" }
+      ]
+    },
+    {
+      "id": "bad-norr",
+      "from": [20, 262.5], "to": [222, 262.5], "thickness": 9,
+      "openings": [ { "type": "door", "offset": 110, "width": 70, "sill": 0, "head": 210, "label": "D3V bad" } ]
+    },
+    {
+      "id": "bad-sovrum-vast",
+      "from": [218.5, 20], "to": [218.5, 355.5], "thickness": 7,
+      "openings": []
+    },
+    {
+      "id": "sovrum-syd-norrvagg",
+      "from": [222, 355.5], "to": [606, 355.5], "thickness": 7,
+      "openings": [ { "type": "door", "offset": 28, "width": 90, "sill": 0, "head": 210, "label": "D2H sovrum söder" } ]
+    },
+    {
+      "id": "kladk-vast",
+      "from": [343.5, 359], "to": [343.5, 497], "thickness": 7,
+      "openings": [ { "type": "door", "offset": 40, "width": 70, "sill": 0, "head": 210, "label": "D5HL klädkammare" } ]
+    }
+  ],
+  "rooms": [
+    { "name": "SOVRUM",    "poly": [[20, 504], [225, 504], [225, 890], [20, 890]], "color": "#b9c4d0" },
+    { "name": "SOVRUM",    "poly": [[232, 504], [606, 504], [606, 890], [232, 890]], "color": "#bcc7c2" },
+    { "name": "SOVRUM",    "poly": [[222, 20], [606, 20], [606, 352], [222, 352]], "color": "#c5bfd0" },
+    { "name": "BAD",       "poly": [[20, 20], [215, 20], [215, 258], [20, 258]], "color": "#aebfbc" },
+    { "name": "KLÄDK",     "poly": [[347, 359], [606, 359], [606, 497], [347, 497]], "color": "#c0b6a8" },
+    { "name": "TRAPPHALL", "poly": [[20, 267], [222, 267], [222, 359], [340, 359], [340, 497], [20, 497]], "color": "#b8b0a4" }
+  ],
+  "stairs": [
+    { "type": "spiral", "center": [150, 360], "radius": 80, "rise": 250, "steps": 14 }
+  ],
+  "columns": [
+    { "x": 560, "y": 400, "w": 45, "d": 65, "label": "murstock (utkragas 50 cm å vinden)" }
+  ],
+  "assumptions": [
+    "Band depths from left chain: 386 (norra sovrum) / 7 / 230 (trapphall) / 9 / 236 (bad) + ytterväggar 20+22; south wall modelled 20 (2 cm slack absorbed).",
+    "Divider between the two north bedrooms placed from mid chain 118+87 => interior width 205 for NV rummet (top chain is ambiguous there).",
+    "79 cm segments in north and south chains read as openable window sections adjacent to the fixed F6 windows (drawn with swing arcs).",
+    "Klädkammare: 140 cm deep per right chain; extends to east wall with the chimney block inside its SE corner (drawing shows chimney hatch at east wall).",
+    "South bedroom west wall continues to y=355.5 to close the room (drawing unclear at that corner).",
+    "Wardrobe row (L/L/LT) south of trapphall not modelled as walls; place wardrobes as furniture instead.",
+    "Wall heights not on plan drawing; 250 cm assumed. Bathroom window sill raised to 120.",
+    "Spiral stair position shared with bottenplan at (150, 360), r=80 (chain '150' read as stair diameter region)."
+  ]
+}

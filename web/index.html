@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>House Visualizer — Robertshöjd hustyp BAS</title>
+  <link rel="stylesheet" href="./style.css" />
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three.module.js" } }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <aside id="sidebar">
+      <h1>Robertshöjd <span>hustyp BAS · 1960</span></h1>
+
+      <section>
+        <h2>Våning</h2>
+        <div id="floor-buttons" class="btn-row"></div>
+      </section>
+
+      <section>
+        <h2>Vy</h2>
+        <div class="btn-row">
+          <button id="btn-reset-cam" title="Reset camera to the fixed start angle">Återställ vy</button>
+          <button id="btn-top-cam" title="Straight top-down floor plan view">Ovanifrån</button>
+          <button id="btn-freelook" title="First person walk-through (F). WASD + mouse, Esc to leave">Fritt läge</button>
+        </div>
+        <label class="check"><input type="checkbox" id="chk-ceiling" /> Visa innertak</label>
+        <label class="check"><input type="checkbox" id="chk-labels" checked /> Rumsnamn</label>
+      </section>
+
+      <section>
+        <h2>Möbler</h2>
+        <div id="palette"></div>
+        <p class="hint" id="place-hint" hidden>Klicka på golvet för att placera · Esc avbryter</p>
+      </section>
+
+      <section id="selection-panel" hidden>
+        <h2>Vald möbel · <span id="sel-name"></span></h2>
+        <div class="dims">
+          <label>B <input type="number" id="dim-w" min="10" max="1000" step="1" /> cm</label>
+          <label>D <input type="number" id="dim-d" min="10" max="1000" step="1" /> cm</label>
+          <label>H <input type="number" id="dim-h" min="10" max="250" step="1" /> cm</label>
+        </div>
+        <div class="btn-row">
+          <button id="btn-rotate" title="Rotate 15° (R)">⟳ 15°</button>
+          <button id="btn-duplicate">Duplicera</button>
+          <button id="btn-delete" class="danger" title="Delete (Del)">Ta bort</button>
+        </div>
+      </section>
+
+      <footer>
+        <p>Rotera: vänster mus · Panorera: höger mus · Zoom: scroll</p>
+        <p>R rotera vald · Del ta bort · F fritt läge (WASD + mus)</p>
+      </footer>
+    </aside>
+    <main id="viewport"><canvas id="canvas"></canvas></main>
+  </div>
+  <div id="freelook-hud" hidden>WASD gå · Shift spring · Esc lämna</div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

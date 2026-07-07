@@ -1,0 +1,90 @@
+{
+  "id": "bottenplan",
+  "name": "Bottenplan (entréplan)",
+  "units": "cm",
+  "source": {
+    "pdf": "assets/Arkitektritning - Block 26-29 Hustyp BAS A 102.pdf",
+    "drawing": "Robertshöjd, Göteborg — Block 26-29, hustyp BAS, ritn nr 102, skala 1:50, 1960",
+    "plan": "BOTTENPLAN (right half of sheet)",
+    "raster": "assets/raster/ (tools/rasterize.sh, 300 dpi)"
+  },
+  "envelope": { "width": 626, "depth": 910 },
+  "wallHeight": 250,
+  "walls": [
+    {
+      "id": "ext-south",
+      "from": [0, 10], "to": [626, 10], "thickness": 20,
+      "openings": [
+        { "type": "door",   "offset": 188, "width": 94,  "sill": 0,  "head": 210, "label": "YDIV entrédörr" },
+        { "type": "window", "offset": 346, "width": 144, "sill": 90, "head": 210, "label": "F9V kök" }
+      ]
+    },
+    {
+      "id": "ext-north",
+      "from": [0, 900], "to": [626, 900], "thickness": 20,
+      "openings": [
+        { "type": "window", "offset": 25,  "width": 195, "sill": 90, "head": 220, "label": "FB1 195 sovrum" },
+        { "type": "door",   "offset": 262, "width": 90,  "sill": 0,  "head": 220, "label": "altandörr uteplats" },
+        { "type": "window", "offset": 357, "width": 244, "sill": 50, "head": 220, "label": "FB1 388,5 vardagsrum (band minus dörr)" }
+      ]
+    },
+    { "id": "ext-west", "from": [10, 0], "to": [10, 910], "thickness": 20, "openings": [] },
+    { "id": "ext-east", "from": [616, 0], "to": [616, 910], "thickness": 20, "openings": [] },
+    {
+      "id": "sovrum-syd",
+      "from": [20, 500.5], "to": [257, 500.5], "thickness": 7,
+      "openings": [ { "type": "door", "offset": 120, "width": 90, "sill": 0, "head": 210, "label": "D2V sovrum" } ]
+    },
+    {
+      "id": "sovrum-vardagsrum",
+      "from": [253.5, 504], "to": [253.5, 890], "thickness": 7,
+      "openings": [ { "type": "door", "offset": 16, "width": 90, "sill": 0, "head": 210, "label": "passage (vikvägg på ritning)" } ]
+    },
+    {
+      "id": "hall-norr",
+      "from": [20, 157.5], "to": [350, 157.5], "thickness": 15,
+      "openings": [ { "type": "opening", "offset": 130, "width": 130, "sill": 0, "head": 210, "label": "hall–trapprum" } ]
+    },
+    {
+      "id": "toilett-ost",
+      "from": [133.5, 20], "to": [133.5, 150], "thickness": 7,
+      "openings": [ { "type": "door", "offset": 40, "width": 70, "sill": 0, "head": 210, "label": "toilett" } ]
+    },
+    {
+      "id": "kok-vast",
+      "from": [346.5, 20], "to": [346.5, 355], "thickness": 7,
+      "openings": [ { "type": "door", "offset": 25, "width": 90, "sill": 0, "head": 210, "label": "D2H hall–kök" } ]
+    },
+    {
+      "id": "kok-norr-forvaring",
+      "from": [350, 355], "to": [606, 355], "thickness": 30,
+      "openings": [ { "type": "opening", "offset": 166, "width": 80, "sill": 0, "head": 210, "label": "D2V kök–vardagsrum" } ]
+    }
+  ],
+  "rooms": [
+    { "name": "SOVRUM",     "poly": [[20, 504], [250, 504], [250, 890], [20, 890]], "color": "#b9c4d0" },
+    { "name": "VARDAGSRUM", "poly": [[257, 370], [606, 370], [606, 890], [257, 890]], "color": "#c9bda6" },
+    { "name": "KÖK",        "poly": [[350, 20], [606, 20], [606, 340], [350, 340]], "color": "#cfc39b" },
+    { "name": "HALL",       "poly": [[137, 20], [343, 20], [343, 150], [137, 150]], "color": "#c0b6a8" },
+    { "name": "TOILETT",    "poly": [[20, 20], [130, 20], [130, 150], [20, 150]], "color": "#aebfbc" },
+    { "name": "TRAPPRUM",   "poly": [[20, 165], [343, 165], [343, 340], [257, 340], [257, 497], [20, 497]], "color": "#b8b0a4" }
+  ],
+  "stairs": [
+    { "type": "spiral", "center": [150, 360], "radius": 80, "rise": 250, "steps": 14 }
+  ],
+  "columns": [
+    { "x": 560, "y": 400, "w": 45, "d": 65, "label": "murstock/öppen spis" }
+  ],
+  "assumptions": [
+    "Exterior walls uniformly 20 cm (drawing: tegel/betong, party walls east+west, 'extra ljudisol' west).",
+    "No windows in east/west walls: row house (block 26-29), both long sides are party walls.",
+    "North wall of vardagsrum read as full glass band 'FB1 388,5'; modelled as 90 cm terrace door + 244 cm window with 50 cm sill.",
+    "Hall–kök wall is drawn slightly slanted; modelled orthogonal at x=350.",
+    "Kitchen north storage wall (ST/SKÅP/KOMB-KYL row) modelled as one 30 cm thick wall with a doorless 80 cm passage at its east end.",
+    "Stair zone opens to vardagsrum without a wall (dashed boundary on drawing).",
+    "Spiral stair centre/radius estimated from raster (~150 cm diameter noted on överplan chain).",
+    "Wall heights not on plan drawing; 250 cm assumed (typical 1960).",
+    "Window sill/head heights assumed: 90/210 standard, living room band 50/220, doors 210.",
+    "Murstock position estimated from 'gipsskiva klistras å grovstockn' note and överplan chimney hatch."
+  ]
+}
