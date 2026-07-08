@@ -76,6 +76,12 @@ function validatePlan(file) {
         fail(id, `wall "${wid}" opening "${label}": bad sill/head ${o.sill}/${o.head} (wall height ${height})`);
       if (o.type !== "window" && o.sill !== 0)
         fail(id, `wall "${wid}" opening "${label}": ${o.type} should have sill 0`);
+      if (o.swing !== undefined) {
+        if (o.type !== "door")
+          fail(id, `wall "${wid}" opening "${label}": swing only valid on doors`);
+        if (!["start", "end"].includes(o.swing.hinge) || !["left", "right"].includes(o.swing.opens))
+          fail(id, `wall "${wid}" opening "${label}": swing needs hinge start/end and opens left/right`);
+      }
       spans.push([o.offset, o.offset + o.width, label]);
     }
     spans.sort((a, b) => a[0] - b[0]);

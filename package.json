@@ -7,7 +7,7 @@
   "scripts": {
     "rasterize": "tools/rasterize.sh",
     "validate": "node tools/validate.mjs",
-    "serve": "python3 -m http.server 8741 --bind 127.0.0.1"
+    "serve": "python3 tools/serve.py 8741"
   },
   "dependencies": {
     "three": "^0.185.1"

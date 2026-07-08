@@ -364,7 +364,12 @@ function deleteSelected() {
 function duplicateSelected() {
   const item = items.find((i) => i.id === selectedId);
   if (!item) return;
-  const copy = { ...item, id: `${item.preset}-${Date.now().toString(36)}`, x: item.x + 0.4, z: item.z + 0.4 };
+  const copy = {
+    ...item,
+    id: `${item.preset}-${Date.now().toString(36)}-${Math.floor(Math.random() * 1e4)}`,
+    x: item.x + 0.4,
+    z: item.z + 0.4,
+  };
   items.push(copy);
   furnitureRoot.add(buildItem(copy));
   persist();
@@ -522,6 +527,71 @@ freeLook.addEventListener("unlock", () => {
   resetCamera();
 });
 document.getElementById("btn-freelook").addEventListener("click", enterFreeLook);
+
+// ---------- layout save/load ----------
+function exportLayouts() {
+  persist(); // flush current floor to localStorage first
+  const layouts = {};
+  for (const f of FLOORS) layouts[f.id] = f.id === currentFloor?.id ? items : loadLayout(f.id);
+  const payload = { app: "house-visualizer", version: 1, saved: new Date().toISOString(), layouts };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `mobler-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function sanitizeItems(list) {
+  if (!Array.isArray(list)) return null;
+  return list
+    .filter((i) => i && typeof i.preset === "string")
+    .map((i, n) => ({
+      id: String(i.id ?? `import-${Date.now().toString(36)}-${n}`),
+      preset: i.preset,
+      w: Number(i.w) || 50, d: Number(i.d) || 50, h: Number(i.h) || 50,
+      x: Number(i.x) || 0, z: Number(i.z) || 0, rot: Number(i.rot) || 0,
+    }));
+}
+
+async function importLayouts(file) {
+  let data;
+  try {
+    data = JSON.parse(await file.text());
+  } catch {
+    alert("Ogiltig layoutfil: kunde inte läsa JSON.");
+    return;
+  }
+  // full export { layouts: { floorId: [...] } } or a bare item array (applied to the current floor)
+  const layouts = data.layouts ?? (Array.isArray(data) ? { [currentFloor.id]: data } : null);
+  if (!layouts) {
+    alert("Ogiltig layoutfil: hittade varken \"layouts\" eller en möbellista.");
+    return;
+  }
+  let applied = 0;
+  for (const [floorId, list] of Object.entries(layouts)) {
+    const clean = FLOORS.some((f) => f.id === floorId) ? sanitizeItems(list) : null;
+    if (!clean) continue;
+    saveLayout(floorId, clean);
+    applied++;
+  }
+  if (!applied) {
+    alert("Layoutfilen innehöll inga giltiga våningar.");
+    return;
+  }
+  cancelPlacement();
+  select(null);
+  items = loadLayout(currentFloor.id);
+  rebuildFurniture();
+}
+
+document.getElementById("btn-save-layout").addEventListener("click", exportLayouts);
+const layoutFileInput = document.getElementById("layout-file");
+document.getElementById("btn-load-layout").addEventListener("click", () => layoutFileInput.click());
+layoutFileInput.addEventListener("change", () => {
+  if (layoutFileInput.files[0]) importLayouts(layoutFileInput.files[0]);
+  layoutFileInput.value = ""; // allow re-loading the same file
+});
 
 // ---------- UI wiring ----------
 const floorButtons = document.getElementById("floor-buttons");

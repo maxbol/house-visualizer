@@ -36,6 +36,15 @@
         <p class="hint" id="place-hint" hidden>Klicka på golvet för att placera · Esc avbryter</p>
       </section>
 
+      <section>
+        <h2>Layout</h2>
+        <div class="btn-row">
+          <button id="btn-save-layout" title="Save both floors' furniture to a JSON file">Spara till fil</button>
+          <button id="btn-load-layout" title="Load furniture layout from a JSON file">Ladda från fil</button>
+        </div>
+        <input type="file" id="layout-file" accept=".json,application/json" hidden />
+      </section>
+
       <section id="selection-panel" hidden>
         <h2>Vald möbel · <span id="sel-name"></span></h2>
         <div class="dims">

@@ -51,6 +51,11 @@ Straight centreline segment. Usually axis-aligned, but any angle is allowed
   of the opening.
 - `door` = hole, no glass. `window` = hole + glass pane. `opening` = plain
   hole (doorless passage).
+- Doors may carry a `swing` when the leaf arc is visible on the drawing:
+  `{ "hinge": "start" | "end", "opens": "left" | "right" }` — hinge jamb
+  measured along the wall from `from`, and the side the leaf sweeps into when
+  walking `from` → `to`. Rendered as a translucent yellow quarter-disc on the
+  floor (the area the door needs to clear).
 - Walls may overlap at corners; the builder renders overlapping solids with
   the same material so joints are invisible.
 

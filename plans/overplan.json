@@ -40,19 +40,19 @@
       "id": "norra-sovrummens-sodervagg",
       "from": [20, 500.5], "to": [606, 500.5], "thickness": 7,
       "openings": [
-        { "type": "door", "offset": 110, "width": 90, "sill": 0, "head": 210, "label": "D2V sovrum NV" },
-        { "type": "door", "offset": 225, "width": 90, "sill": 0, "head": 210, "label": "D2H sovrum NO" }
+        { "type": "door", "offset": 110, "width": 90, "sill": 0, "head": 210, "label": "D2V sovrum NV", "swing": { "hinge": "end", "opens": "left" } },
+        { "type": "door", "offset": 225, "width": 90, "sill": 0, "head": 210, "label": "D2H sovrum NO", "swing": { "hinge": "start", "opens": "left" } }
       ]
     },
     {
       "id": "bad-norr",
       "from": [20, 262.5], "to": [222, 262.5], "thickness": 9,
-      "openings": [ { "type": "door", "offset": 110, "width": 70, "sill": 0, "head": 210, "label": "D3V bad" } ]
+      "openings": [ { "type": "door", "offset": 110, "width": 70, "sill": 0, "head": 210, "label": "D3V bad", "swing": { "hinge": "start", "opens": "left" } } ]
     },
     {
       "id": "bad-sovrum-vast",
       "from": [218.5, 20], "to": [218.5, 357], "thickness": 7,
-      "openings": [ { "type": "door", "offset": 255, "width": 75, "sill": 0, "head": 210, "label": "D2H sovrum söder (från trapphall)" } ]
+      "openings": [ { "type": "door", "offset": 255, "width": 75, "sill": 0, "head": 210, "label": "D2H sovrum söder (från trapphall)", "swing": { "hinge": "end", "opens": "right" } } ]
     },
     {
       "id": "sovrum-syd-norrvagg",
@@ -62,7 +62,7 @@
     {
       "id": "kladk-vast",
       "from": [343.5, 357], "to": [343.5, 504], "thickness": 7,
-      "openings": [ { "type": "door", "offset": 40, "width": 70, "sill": 0, "head": 210, "label": "D5HL klädkammare" } ]
+      "openings": [ { "type": "door", "offset": 73, "width": 70, "sill": 0, "head": 210, "label": "D5HL klädkammare", "swing": { "hinge": "end", "opens": "left" } } ]
     }
   ],
   "rooms": [

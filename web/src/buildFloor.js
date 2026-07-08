@@ -22,6 +22,10 @@ const MAT = {
   fixtureFront: new THREE.MeshStandardMaterial({ color: 0x4f5357, roughness: 0.55 }),
   porcelain: new THREE.MeshStandardMaterial({ color: 0xf1f1eb, roughness: 0.3 }),
   tubInner: new THREE.MeshStandardMaterial({ color: 0xdce3e6, roughness: 0.4 }),
+  swing: new THREE.MeshBasicMaterial({
+    color: 0xd9b83a, transparent: true, opacity: 0.4,
+    depthWrite: false, side: THREE.DoubleSide,
+  }),
 };
 
 const FACING = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] }; // world (x, z) toward the front
@@ -111,6 +115,24 @@ function buildWall(wall, defaultHeight, group) {
     } else if (o.type === "door") {
       seg(o.a, o.a + 0.035, o.sillM, o.headM, MAT.frame);
       seg(o.b - 0.035, o.b, o.sillM, o.headM, MAT.frame);
+      if (o.swing) {
+        // yellow quarter-disc on the floor showing the door's swept area
+        const radius = o.b - o.a;
+        const hingeU = o.swing.hinge === "end" ? o.b : o.a;
+        const cdx = o.swing.hinge === "end" ? -ux : ux; // closed leaf, toward the other jamb
+        const cdz = o.swing.hinge === "end" ? -uz : uz;
+        const sdx = o.swing.opens === "left" ? uz : -uz; // plan-left of from->to is world (uz, -ux)
+        const sdz = o.swing.opens === "left" ? -ux : ux;
+        const thC = Math.atan2(-cdz, cdx);
+        const ccw = cdx * -sdz - -cdz * sdx > 0; // is the open side CCW from the closed leaf?
+        const geo = new THREE.CircleGeometry(radius, 20, ccw ? thC : thC - Math.PI / 2, Math.PI / 2);
+        geo.rotateX(-Math.PI / 2);
+        const disc = new THREE.Mesh(geo, MAT.swing);
+        disc.position.set(ox + ux * hingeU, 0.008, oz + uz * hingeU);
+        disc.renderOrder = 1;
+        disc.userData.info = `${o.label ?? "dörr"} — uppställningsyta, dörrblad ${Math.round(radius / S)} cm`;
+        group.add(disc);
+      }
     }
     cursor = o.b;
   }

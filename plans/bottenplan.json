@@ -15,7 +15,7 @@
       "id": "ext-south",
       "from": [0, 10], "to": [626, 10], "thickness": 20,
       "openings": [
-        { "type": "door",   "offset": 188, "width": 94,  "sill": 0,  "head": 210, "label": "YDIV entrédörr" },
+        { "type": "door",   "offset": 188, "width": 94,  "sill": 0,  "head": 210, "label": "YDIV entrédörr", "swing": { "hinge": "start", "opens": "left" } },
         { "type": "window", "offset": 346, "width": 144, "sill": 90, "head": 210, "label": "F9V kök" }
       ]
     },
@@ -33,7 +33,7 @@
     {
       "id": "toilett-norr",
       "from": [20, 155.5], "to": [137, 155.5], "thickness": 7,
-      "openings": [ { "type": "door", "offset": 47, "width": 65, "sill": 0, "head": 210, "label": "toilett (mot trapprum)" } ]
+      "openings": [ { "type": "door", "offset": 47, "width": 65, "sill": 0, "head": 210, "label": "toilett (mot trapprum)", "swing": { "hinge": "end", "opens": "left" } } ]
     },
     {
       "id": "toilett-ost",
@@ -48,7 +48,7 @@
     {
       "id": "kok-vast",
       "from": [292, 20], "to": [261, 380], "thickness": 7,
-      "openings": [ { "type": "door", "offset": 207, "width": 80, "sill": 0, "head": 210, "label": "D2H hall–kök (75 från norra änden)" } ]
+      "openings": [ { "type": "door", "offset": 207, "width": 80, "sill": 0, "head": 210, "label": "D2H hall–kök (75 från norra änden)", "swing": { "hinge": "end", "opens": "right" } } ]
     },
     {
       "id": "kok-norr",
