@@ -33,7 +33,8 @@ web/src/buildFloor.js             (deterministic JSON -> three.js geometry)
 - All plan coordinates are **centimetres**, origin at the SW exterior corner,
   x east, y north — exactly like the dimension chains on the drawing
   (626 exterior width, 910 depth, 20 cm exterior walls, 7 cm partitions).
-- Everything the drawing does not state (wall height 250, sill heights, the
+- Everything the drawing does not state (ceiling height 240 — confirmed by
+  owner, sill heights, the
   slightly slanted hall/kök wall made orthogonal, …) is listed per plan under
   `assumptions`.
 - Re-run `npm run validate` after editing a plan; the viewer builds blindly
@@ -57,7 +58,7 @@ web/src/buildFloor.js             (deterministic JSON -> three.js geometry)
 Preset furniture (bokhylla, garderob, sängar, soffa, fåtölj, bord, stolar,
 skrivbord, sideboard, egen låda) built parametrically from its W×D×H in cm —
 edit the dimensions of a selected piece and it rebuilds to scale. A 202 cm
-bookshelf visibly nearly reaches the 250 cm ceiling.
+bookshelf visibly nearly reaches the 240 cm ceiling.
 
 - Click a preset, then click the floor to place (ghost preview follows the
   cursor). Pieces are structurally locked to floor level.

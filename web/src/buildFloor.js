@@ -18,7 +18,48 @@ const MAT = {
   pole: new THREE.MeshStandardMaterial({ color: 0x4a4a4e, roughness: 0.5, metalness: 0.6 }),
   ceiling: new THREE.MeshStandardMaterial({ color: 0xf2efe8, roughness: 0.95, side: THREE.DoubleSide }),
   column: new THREE.MeshStandardMaterial({ color: 0xc7b9a5, roughness: 0.9 }),
+  fixture: new THREE.MeshStandardMaterial({ color: 0x5c6064, roughness: 0.6 }),
+  fixtureFront: new THREE.MeshStandardMaterial({ color: 0x4f5357, roughness: 0.55 }),
+  porcelain: new THREE.MeshStandardMaterial({ color: 0xf1f1eb, roughness: 0.3 }),
+  tubInner: new THREE.MeshStandardMaterial({ color: 0xdce3e6, roughness: 0.4 }),
 };
+
+const FACING = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] }; // world (x, z) toward the front
+
+function buildToilet(f, group) {
+  const w = f.w * S, d = f.d * S, h = f.h * S;
+  const cx = (f.x + f.w / 2) * S, cz = -(f.y + f.d / 2) * S;
+  const [fx, fz] = FACING[f.facing ?? "s"];
+  const depth = fx ? w : d; // extent along the facing axis
+  const across = fx ? d : w;
+  // cistern against the back edge
+  group.add(box(fx ? 0.16 : across * 0.9, h, fx ? across * 0.9 : 0.16, MAT.porcelain,
+    cx - fx * (depth / 2 - 0.08), h / 2, cz - fz * (depth / 2 - 0.08)));
+  const bowl = new THREE.Mesh(new THREE.CylinderGeometry(across * 0.3, across * 0.2, h * 0.52, 20), MAT.porcelain);
+  bowl.scale.set(fx ? 1.4 : 1, 1, fz ? 1.4 : 1);
+  bowl.position.set(cx + fx * depth * 0.12, h * 0.26, cz + fz * depth * 0.12);
+  bowl.castShadow = true;
+  group.add(bowl);
+  const seat = new THREE.Mesh(new THREE.CylinderGeometry(across * 0.33, across * 0.33, 0.035, 20), MAT.porcelain);
+  seat.scale.copy(bowl.scale);
+  seat.position.set(bowl.position.x, h * 0.52, bowl.position.z);
+  group.add(seat);
+}
+
+function buildSink(f, group) {
+  const w = f.w * S, d = f.d * S, h = f.h * S;
+  const cx = (f.x + f.w / 2) * S, cz = -(f.y + f.d / 2) * S;
+  group.add(box(w, 0.12, d, MAT.porcelain, cx, h - 0.06, cz)); // basin
+  group.add(box(w * 0.3, h - 0.12, d * 0.3, MAT.porcelain, cx, (h - 0.12) / 2, cz)); // pedestal
+}
+
+function buildBathtub(f, group) {
+  const w = f.w * S, d = f.d * S, h = f.h * S;
+  const cx = (f.x + f.w / 2) * S, cz = -(f.y + f.d / 2) * S;
+  group.add(box(w, h, d, MAT.porcelain, cx, h / 2, cz));
+  const inner = h - 0.1;
+  group.add(box(w - 0.14, inner, d - 0.14, MAT.tubInner, cx, h + 0.004 - inner / 2, cz));
+}
 
 function box(w, h, d, mat, cx, cy, cz, castShadow = true) {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -39,15 +80,17 @@ function buildWall(wall, defaultHeight, group) {
   const uz = -(y2 - y1) * S / len; // world z (plan y flips)
   const ox = x1 * S;
   const oz = -y1 * S;
-  const horizontal = Math.abs(uz) < 1e-9;
+  const angle = Math.atan2(-uz, ux); // yaw so the box length follows the wall
 
   // segment [a, b] along the wall (m), vertical band [v0, v1] (m)
-  const seg = (a, b, v0, v1, mat = MAT.wall, thick = t) => {
+  const wallInfo = `${wall.id} — ${Math.round(len / S)}×${wall.thickness} cm, h ${wall.height ?? defaultHeight}`;
+  const seg = (a, b, v0, v1, mat = MAT.wall, thick = t, info = wallInfo) => {
     if (b - a < 1e-4 || v1 - v0 < 1e-4) return;
     const mid = (a + b) / 2;
-    const w = horizontal ? b - a : thick;
-    const d = horizontal ? thick : b - a;
-    group.add(box(w, v1 - v0, d, mat, ox + ux * mid, (v0 + v1) / 2, oz + uz * mid));
+    const mesh = box(b - a, v1 - v0, thick, mat, ox + ux * mid, (v0 + v1) / 2, oz + uz * mid);
+    mesh.rotation.y = angle;
+    mesh.userData.info = info;
+    group.add(mesh);
   };
 
   const openings = [...(wall.openings ?? [])]
@@ -60,7 +103,8 @@ function buildWall(wall, defaultHeight, group) {
     if (o.sillM > 0) seg(o.a, o.b, 0, o.sillM); // below the sill
     if (o.headM < height) seg(o.a, o.b, o.headM, height); // lintel above
     if (o.type === "window") {
-      seg(o.a, o.b, o.sillM, o.headM, MAT.glass, Math.min(t * 0.25, 0.03));
+      const openInfo = `${o.label ?? o.type} — ${o.width} cm bred, höjd ${o.sill}–${o.head}`;
+      seg(o.a, o.b, o.sillM, o.headM, MAT.glass, Math.min(t * 0.25, 0.03), openInfo);
       // slim frame strips left/right of the glass
       seg(o.a, o.a + 0.04, o.sillM, o.headM, MAT.frame);
       seg(o.b - 0.04, o.b, o.sillM, o.headM, MAT.frame);
@@ -85,9 +129,10 @@ function buildSpiralStair(stair, group) {
   pole.castShadow = true;
   group.add(pole);
 
-  const sweep = (Math.PI * 5) / 3; // 300 degrees over the full climb
+  const sweep = THREE.MathUtils.degToRad(stair.sweepDeg ?? 300);
+  const start = THREE.MathUtils.degToRad(stair.startDeg ?? 0);
   for (let i = 0; i < n; i++) {
-    const angle = (i / (n - 1)) * sweep;
+    const angle = start + (i / (n - 1)) * sweep;
     const y = ((i + 1) * rise) / n - 0.02;
     const tread = box(r - 0.08, 0.04, 0.26, MAT.step, 0, 0, 0);
     tread.geometry.translate((r - 0.08) / 2 + 0.06, 0, 0); // inner edge at the pole
@@ -112,7 +157,30 @@ export function buildFloor(plan) {
 
   for (const c of plan.columns ?? []) {
     const h = plan.wallHeight * S;
-    group.add(box(c.w * S, h, c.d * S, MAT.column, (c.x + c.w / 2) * S, h / 2, -(c.y + c.d / 2) * S));
+    const mesh = box(c.w * S, h, c.d * S, MAT.column, (c.x + c.w / 2) * S, h / 2, -(c.y + c.d / 2) * S);
+    mesh.userData.info = `${c.label ?? "pelare"} — ${c.w}×${c.d} cm`;
+    group.add(mesh);
+  }
+
+  // built-in fixtures: cabinetry (carcass + recessed front), counters (+ worktop),
+  // and sanitary ware with dedicated shapes
+  for (const f of plan.fixtures ?? []) {
+    const fg = new THREE.Group();
+    if (f.type === "toilet") buildToilet(f, fg);
+    else if (f.type === "bathtub") buildBathtub(f, fg);
+    else if (f.type === "sink") buildSink(f, fg);
+    else {
+      const h = f.h * S;
+      const cx = (f.x + f.w / 2) * S;
+      const cz = -(f.y + f.d / 2) * S;
+      fg.add(box(f.w * S, h, f.d * S, MAT.fixture, cx, h / 2, cz));
+      fg.add(box(f.w * S + 0.012, h - 0.14, f.d * S + 0.012, MAT.fixtureFront, cx, (h - 0.06) / 2, cz));
+      if (f.type === "counter")
+        fg.add(box(f.w * S + 0.02, 0.035, f.d * S + 0.02, MAT.step, cx, h, cz)); // worktop
+    }
+    const info = `${f.label ?? f.type} — ${f.w}×${f.d} cm, h ${f.h}`;
+    fg.traverse((o) => o.isMesh && (o.userData.info = info));
+    group.add(fg);
   }
 
   // tinted per-room floor overlays + labels

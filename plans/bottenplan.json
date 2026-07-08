@@ -9,7 +9,7 @@
     "raster": "assets/raster/ (tools/rasterize.sh, 300 dpi)"
   },
   "envelope": { "width": 626, "depth": 910 },
-  "wallHeight": 250,
+  "wallHeight": 240,
   "walls": [
     {
       "id": "ext-south",
@@ -23,67 +23,80 @@
       "id": "ext-north",
       "from": [0, 900], "to": [626, 900], "thickness": 20,
       "openings": [
-        { "type": "window", "offset": 25,  "width": 195, "sill": 90, "head": 220, "label": "FB1 195 sovrum" },
-        { "type": "door",   "offset": 262, "width": 90,  "sill": 0,  "head": 220, "label": "altandörr uteplats" },
-        { "type": "window", "offset": 357, "width": 244, "sill": 50, "head": 220, "label": "FB1 388,5 vardagsrum (band minus dörr)" }
+        { "type": "window", "offset": 58,  "width": 144, "sill": 50, "head": 220, "label": "F3H, låg bröstning" },
+        { "type": "door",   "offset": 253, "width": 90,  "sill": 0,  "head": 220, "label": "altandörr (första sektionen av F1H)" },
+        { "type": "window", "offset": 343, "width": 210, "sill": 0,  "head": 220, "label": "F1H, glas till golv" }
       ]
     },
     { "id": "ext-west", "from": [10, 0], "to": [10, 910], "thickness": 20, "openings": [] },
     { "id": "ext-east", "from": [616, 0], "to": [616, 910], "thickness": 20, "openings": [] },
     {
-      "id": "sovrum-syd",
-      "from": [20, 500.5], "to": [257, 500.5], "thickness": 7,
-      "openings": [ { "type": "door", "offset": 120, "width": 90, "sill": 0, "head": 210, "label": "D2V sovrum" } ]
-    },
-    {
-      "id": "sovrum-vardagsrum",
-      "from": [253.5, 504], "to": [253.5, 890], "thickness": 7,
-      "openings": [ { "type": "door", "offset": 16, "width": 90, "sill": 0, "head": 210, "label": "passage (vikvägg på ritning)" } ]
-    },
-    {
-      "id": "hall-norr",
-      "from": [20, 157.5], "to": [350, 157.5], "thickness": 15,
-      "openings": [ { "type": "opening", "offset": 130, "width": 130, "sill": 0, "head": 210, "label": "hall–trapprum" } ]
+      "id": "toilett-norr",
+      "from": [20, 155.5], "to": [137, 155.5], "thickness": 7,
+      "openings": [ { "type": "door", "offset": 47, "width": 65, "sill": 0, "head": 210, "label": "toilett (mot trapprum)" } ]
     },
     {
       "id": "toilett-ost",
-      "from": [133.5, 20], "to": [133.5, 150], "thickness": 7,
-      "openings": [ { "type": "door", "offset": 40, "width": 70, "sill": 0, "head": 210, "label": "toilett" } ]
+      "from": [133.5, 20], "to": [133.5, 159], "thickness": 7,
+      "openings": []
+    },
+    {
+      "id": "garderobsvagg",
+      "from": [162.5, 20], "to": [162.5, 159], "thickness": 51,
+      "openings": []
     },
     {
       "id": "kok-vast",
-      "from": [346.5, 20], "to": [346.5, 355], "thickness": 7,
-      "openings": [ { "type": "door", "offset": 25, "width": 90, "sill": 0, "head": 210, "label": "D2H hall–kök" } ]
+      "from": [292, 20], "to": [261, 380], "thickness": 7,
+      "openings": [ { "type": "door", "offset": 207, "width": 80, "sill": 0, "head": 210, "label": "D2H hall–kök (75 från norra änden)" } ]
     },
     {
-      "id": "kok-norr-forvaring",
-      "from": [350, 355], "to": [606, 355], "thickness": 30,
-      "openings": [ { "type": "opening", "offset": 166, "width": 80, "sill": 0, "head": 210, "label": "D2V kök–vardagsrum" } ]
+      "id": "kok-norr",
+      "from": [261, 376.5], "to": [606, 376.5], "thickness": 7,
+      "openings": [ { "type": "opening", "offset": 164, "width": 80, "sill": 0, "head": 210, "label": "D2V kök–vardagsrum (x 425-505)" } ]
+    },
+    {
+      "id": "oppen-spis",
+      "from": [573, 443], "to": [527, 489], "thickness": 60, "height": 145,
+      "openings": []
     }
   ],
   "rooms": [
-    { "name": "SOVRUM",     "poly": [[20, 504], [250, 504], [250, 890], [20, 890]], "color": "#b9c4d0" },
-    { "name": "VARDAGSRUM", "poly": [[257, 370], [606, 370], [606, 890], [257, 890]], "color": "#c9bda6" },
-    { "name": "KÖK",        "poly": [[350, 20], [606, 20], [606, 340], [350, 340]], "color": "#cfc39b" },
-    { "name": "HALL",       "poly": [[137, 20], [343, 20], [343, 150], [137, 150]], "color": "#c0b6a8" },
-    { "name": "TOILETT",    "poly": [[20, 20], [130, 20], [130, 150], [20, 150]], "color": "#aebfbc" },
-    { "name": "TRAPPRUM",   "poly": [[20, 165], [343, 165], [343, 340], [257, 340], [257, 497], [20, 497]], "color": "#b8b0a4" }
+    { "name": "VARDAGSRUM", "poly": [[20, 497], [257, 497], [257, 380], [606, 380], [606, 890], [20, 890]], "color": "#c9bda6" },
+    { "name": "KÖK",        "poly": [[296, 20], [606, 20], [606, 373], [265, 373]], "color": "#cfc39b" },
+    { "name": "HALL",       "poly": [[188, 20], [288, 20], [277, 152], [188, 152]], "color": "#c0b6a8" },
+    { "name": "TOILETT",    "poly": [[20, 20], [130, 20], [130, 152], [20, 152]], "color": "#aebfbc" },
+    { "name": "TRAPPRUM",   "poly": [[20, 159], [276, 159], [258, 373], [257, 380], [257, 497], [20, 497]], "color": "#b8b0a4" }
   ],
   "stairs": [
-    { "type": "spiral", "center": [150, 360], "radius": 80, "rise": 250, "steps": 14 }
+    { "type": "spiral", "center": [117, 402], "radius": 95, "rise": 240, "steps": 12, "sweepDeg": 180, "startDeg": 90 }
+  ],
+  "fixtures": [
+    { "type": "storage", "x": 187, "y": 24, "w": 4, "d": 124, "h": 210, "label": "G/G/EL luckor, inbyggda i garderobsvagg" },
+    { "type": "toilet", "x": 22, "y": 35, "w": 70, "d": 40, "h": 78, "facing": "e", "label": "wc" },
+    { "type": "sink", "x": 22, "y": 100, "w": 45, "d": 50, "h": 85, "facing": "e", "label": "tvättställ" },
+    { "type": "counter", "x": 546, "y": 25, "w": 60, "d": 345, "h": 90, "label": "köksbänk längs östra väggen: ho, spis, diskmaskin/tvättmaskin" },
+    { "type": "storage", "x": 270, "y": 313, "w": 155, "d": 60, "h": 210, "label": "ST/SKÅP/KOMB-KYL: skafferi + kyl/frys" }
   ],
   "columns": [
-    { "x": 560, "y": 400, "w": 45, "d": 65, "label": "murstock/öppen spis" }
+    { "x": 571, "y": 373, "w": 35, "d": 72, "label": "murstock (35 enligt måttkedja)" }
   ],
   "assumptions": [
+    "CURRENT STATE differs from 1960 drawing: both the sovrum/vardagsrum divider and the wall between the north band and trapprum have been torn down (per owner, 2026) — the living room, former bedroom and stair hall form one open space.",
     "Exterior walls uniformly 20 cm (drawing: tegel/betong, party walls east+west, 'extra ljudisol' west).",
     "No windows in east/west walls: row house (block 26-29), both long sides are party walls.",
-    "North wall of vardagsrum read as full glass band 'FB1 388,5'; modelled as 90 cm terrace door + 244 cm window with 50 cm sill.",
-    "Hall–kök wall is drawn slightly slanted; modelled orthogonal at x=350.",
+    "North wall openings per top chain 58+144+51+300+73=626: F3H window 144 (x 58-202, sill 50), 51 cm post, F1H band 300 (x 253-553) modelled as 90 cm glazed terrace door + 210 cm floor-to-head glass. FB1 195/388,5 on the drawing are NOT window widths (fönsterbänk/band figures).",
+    "Hall–kök wall slant per drawing: foot at x=292 (YDIV 188+94 plus the '10' mark) to x=261 at the kök north wall. D2H door 80 wide, ~75 cm from the wall's north end. Clear sightline from the entrance north into trapprum/vardagsrum.",
     "Kitchen north storage wall (ST/SKÅP/KOMB-KYL row) modelled as one 30 cm thick wall with a doorless 80 cm passage at its east end.",
+    "No wall between hall and trapprum: contiguous floor (dashed lines on drawing are zone suggestions). Solid elements: toilett north wall, and the garderobsvagg (x 137-188, y 20-159, level with the toilett wall face) — a full-height 51 cm wall with the G/G/EL units embedded, door fronts facing the hall (confirmed by owner photo).",
+    "Kök dimensions re-read from printed chains (right chain 530/7/373): the 345 chain includes the 35 murstock, so the slant junction is at x 606-345=261; north wall x 261-606 (345, t7, y 376.5) with the murstock block on its last 35, kök interior depth 353, D2V opening 80 at x 425-505, 66 cm wall segment east of it.",
+    "Kitchen counter run (ho, spis, diskmaskin/tvättmaskin) along the EAST exterior wall; tall units (ST/SKÅP/KOMB-KYL: skafferi, kyl/frys) stand in front of the kök north wall (owner photos).",
+    "Murstock at the east wall north of the kök wall segment, with the öppen spis attached at 45° facing the living room, modelled as a 145 cm high angled solid (owner photo).",
+    "North window band heights per owner photos: west band sill 50, east band glazed to the floor.",
+    "Toilett door is in its north wall (east half), opening toward trapprum; east wall is solid (backs the G/G/EL units).",
     "Stair zone opens to vardagsrum without a wall (dashed boundary on drawing).",
-    "Spiral stair centre/radius estimated from raster (~150 cm diameter noted on överplan chain).",
-    "Wall heights not on plan drawing; 250 cm assumed (typical 1960).",
+    "Spiral stair: half-revolution semicircle hugging the west wall, centre (117, 402), r 95 — extents y 307-497 (bottom just above the D2H door top, top at the fireplace line), per owner + drawing.",
+    "Ceiling height not on plan drawing; 240 cm per owner (confirmed, both floors).",
     "Window sill/head heights assumed: 90/210 standard, living room band 50/220, doors 210.",
     "Murstock position estimated from 'gipsskiva klistras å grovstockn' note and överplan chimney hatch."
   ]

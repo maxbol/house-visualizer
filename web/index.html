@@ -43,8 +43,15 @@
           <label>D <input type="number" id="dim-d" min="10" max="1000" step="1" /> cm</label>
           <label>H <input type="number" id="dim-h" min="10" max="250" step="1" /> cm</label>
         </div>
+        <div class="btn-row" id="rot-buttons">
+          <button data-deg="-90">−90°</button>
+          <button data-deg="-45">−45°</button>
+          <button data-deg="-15">−15°</button>
+          <button data-deg="15">+15°</button>
+          <button data-deg="45">+45°</button>
+          <button data-deg="90">+90°</button>
+        </div>
         <div class="btn-row">
-          <button id="btn-rotate" title="Rotate 15° (R)">⟳ 15°</button>
           <button id="btn-duplicate">Duplicera</button>
           <button id="btn-delete" class="danger" title="Delete (Del)">Ta bort</button>
         </div>
@@ -52,12 +59,15 @@
 
       <footer>
         <p>Rotera: vänster mus · Panorera: höger mus · Zoom: scroll</p>
-        <p>R rotera vald · Del ta bort · F fritt läge (WASD + mus)</p>
+        <p>T rotera möbel 90° (Shift+T motsols) · Del ta bort · F fritt läge (WASD + mus)</p>
+        <p>Möbler snäpper mot väggar · håll Alt för fri placering</p>
       </footer>
     </aside>
     <main id="viewport"><canvas id="canvas"></canvas></main>
   </div>
   <div id="freelook-hud" hidden>WASD gå · Shift spring · Esc lämna</div>
+  <div id="tooltip" hidden></div>
+  <div id="dim-badge" hidden></div>
   <script type="module" src="./src/main.js"></script>
 </body>
 </html>

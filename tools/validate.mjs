@@ -39,26 +39,26 @@ function validatePlan(file) {
 
     const [x1, y1] = wall.from ?? [];
     const [x2, y2] = wall.to ?? [];
-    const horizontal = Math.abs(y1 - y2) < EPS;
-    const vertical = Math.abs(x1 - x2) < EPS;
-    if (!horizontal && !vertical) {
-      fail(id, `wall "${wid}" is not axis-aligned`);
-      continue;
-    }
-    const length = horizontal ? Math.abs(x2 - x1) : Math.abs(y2 - y1);
+    // walls may run at any angle (the drawing has a slanted hall/kök wall)
+    const length = Math.hypot(x2 - x1, y2 - y1);
     if (length < EPS) fail(id, `wall "${wid}" has zero length`);
     if (!(wall.thickness > 0)) fail(id, `wall "${wid}" thickness must be positive`);
     const height = wall.height ?? plan.wallHeight;
     if (!(height > 0)) fail(id, `wall "${wid}" height must be positive`);
 
-    // wall body (centreline ± t/2) must stay inside the envelope
+    // wall body must stay in the envelope: check the exact rectangle corners
+    // (endpoints offset by the wall normal times half the thickness)
     const t2 = wall.thickness / 2;
-    const bx1 = Math.min(x1, x2) - (vertical ? t2 : 0);
-    const bx2 = Math.max(x1, x2) + (vertical ? t2 : 0);
-    const by1 = Math.min(y1, y2) - (horizontal ? t2 : 0);
-    const by2 = Math.max(y1, y2) + (horizontal ? t2 : 0);
-    if (!inEnvelope(bx1, by1) || !inEnvelope(bx2, by2))
-      fail(id, `wall "${wid}" extends outside the envelope`);
+    const nx = (-(y2 - y1) / length) * t2;
+    const ny = ((x2 - x1) / length) * t2;
+    for (const [cx, cy] of [
+      [x1 + nx, y1 + ny], [x1 - nx, y1 - ny],
+      [x2 + nx, y2 + ny], [x2 - nx, y2 - ny],
+    ])
+      if (!inEnvelope(cx, cy)) {
+        fail(id, `wall "${wid}" extends outside the envelope`);
+        break;
+      }
 
     // openings: inside the wall, vertically sane, mutually non-overlapping
     const spans = [];
@@ -110,14 +110,24 @@ function validatePlan(file) {
     if (!inEnvelope(cx - s.radius, cy - s.radius) || !inEnvelope(cx + s.radius, cy + s.radius))
       fail(id, `stair at (${cx}, ${cy}) r=${s.radius} outside envelope`);
     if (!(s.rise > 0 && s.steps >= 3)) fail(id, `stair needs positive rise and >= 3 steps`);
+    if (s.sweepDeg !== undefined && !(s.sweepDeg > 0 && s.sweepDeg <= 360))
+      fail(id, `stair sweepDeg ${s.sweepDeg} outside (0, 360]`);
   }
   for (const c of plan.columns ?? [])
     if (!inEnvelope(c.x, c.y) || !inEnvelope(c.x + c.w, c.y + c.d))
       fail(id, `column "${c.label ?? "?"}" outside envelope`);
+  for (const f of plan.fixtures ?? []) {
+    if (!inEnvelope(f.x, f.y) || !inEnvelope(f.x + f.w, f.y + f.d))
+      fail(id, `fixture "${f.label ?? "?"}" outside envelope`);
+    if (!(f.h > 0 && f.h <= plan.wallHeight + EPS))
+      fail(id, `fixture "${f.label ?? "?"}" height ${f.h} outside (0, wallHeight]`);
+    if (f.facing !== undefined && !["n", "s", "e", "w"].includes(f.facing))
+      fail(id, `fixture "${f.label ?? "?"}" facing must be n/s/e/w`);
+  }
 
   // --- summary metrics (eyeball cross-check against the drawing) ---
   const wallArea = (plan.walls ?? []).reduce((sum, w) => {
-    const len = Math.abs((w.to[0] - w.from[0]) + (w.to[1] - w.from[1]));
+    const len = Math.hypot(w.to[0] - w.from[0], w.to[1] - w.from[1]);
     return sum + len * w.thickness;
   }, 0);
   const roomArea = (plan.rooms ?? []).reduce((sum, r) => {

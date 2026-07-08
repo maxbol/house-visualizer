@@ -103,10 +103,76 @@ const raycaster = new THREE.Raycaster();
 const pointerNdc = new THREE.Vector2();
 const floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 let pointerDownAt = null;
+let snapFaces = [];
+
+// ---------- wall snapping ----------
+// Faces are world-space segments with outward normals, built from plan data
+// (both faces of every wall, plus fixture and column rectangles).
+function computeSnapFaces(plan) {
+  const faces = [];
+  const addRect = (x, y, w, d) => {
+    const x1 = x * 0.01, x2 = (x + w) * 0.01;
+    const zN = -(y + d) * 0.01, zS = -y * 0.01; // north is -z
+    faces.push(
+      { ax: x1, az: zS, bx: x2, bz: zS, nx: 0, nz: 1 },
+      { ax: x1, az: zN, bx: x2, bz: zN, nx: 0, nz: -1 },
+      { ax: x1, az: zN, bx: x1, bz: zS, nx: -1, nz: 0 },
+      { ax: x2, az: zN, bx: x2, bz: zS, nx: 1, nz: 0 }
+    );
+  };
+  for (const wall of plan.walls ?? []) {
+    const x1 = wall.from[0] * 0.01, z1 = -wall.from[1] * 0.01;
+    const x2 = wall.to[0] * 0.01, z2 = -wall.to[1] * 0.01;
+    const len = Math.hypot(x2 - x1, z2 - z1);
+    const nx = -(z2 - z1) / len, nz = (x2 - x1) / len;
+    const t2 = (wall.thickness * 0.01) / 2;
+    for (const s of [1, -1])
+      faces.push({
+        ax: x1 + nx * t2 * s, az: z1 + nz * t2 * s,
+        bx: x2 + nx * t2 * s, bz: z2 + nz * t2 * s,
+        nx: nx * s, nz: nz * s,
+      });
+  }
+  for (const f of plan.fixtures ?? []) addRect(f.x, f.y, f.w, f.d);
+  for (const c of plan.columns ?? []) addRect(c.x, c.y, c.w, c.d);
+  return faces;
+}
+
+const SNAP_DIST = 0.18;
+// Pull the rotated footprint (w × d metres at rotDeg) flush against the
+// nearest face within range; a second pass allows corner snaps.
+function snapToWalls(px, pz, w, d, rotDeg) {
+  const rad = THREE.MathUtils.degToRad(rotDeg ?? 0);
+  const c = Math.cos(rad), s = Math.sin(rad);
+  let x = px, z = pz;
+  let first = null;
+  for (let pass = 0; pass < 2; pass++) {
+    let best = null;
+    for (const f of snapFaces) {
+      if (first && Math.abs(f.nx * first.nx + f.nz * first.nz) > 0.7) continue;
+      // support radius of the oriented footprint along the face normal
+      const support =
+        Math.abs((w / 2) * (c * f.nx - s * f.nz)) +
+        Math.abs((d / 2) * (s * f.nx + c * f.nz));
+      const gap = (x - f.ax) * f.nx + (z - f.az) * f.nz - support;
+      if (gap < -0.25 || gap > SNAP_DIST) continue;
+      const fl = Math.hypot(f.bx - f.ax, f.bz - f.az);
+      const tx = (f.bx - f.ax) / fl, tz = (f.bz - f.az) / fl;
+      const proj = (x - f.ax) * tx + (z - f.az) * tz;
+      if (proj < -0.05 || proj > fl + 0.05) continue;
+      if (!best || Math.abs(gap) < Math.abs(best.gap)) best = { f, gap };
+    }
+    if (!best) break;
+    x -= best.f.nx * best.gap;
+    z -= best.f.nz * best.gap;
+    first = best.f;
+  }
+  return { x, z };
+}
 
 // ---------- floor loading ----------
 async function loadFloor(id) {
-  const res = await fetch(`../plans/${id}.json`);
+  const res = await fetch(`../plans/${id}.json`, { cache: "no-store" });
   if (!res.ok) throw new Error(`failed to load plan ${id}: ${res.status}`);
   const plan = await res.json();
 
@@ -123,12 +189,30 @@ async function loadFloor(id) {
 
   items = loadLayout(id);
   if (params.has("demo") && items.length === 0) items = demoLayout(id);
+  snapFaces = computeSnapFaces(plan);
   rebuildFurniture();
 
   for (const btn of document.querySelectorAll("#floor-buttons button"))
     btn.classList.toggle("active", btn.dataset.floor === id);
   if (params.get("view") === "top") topCamera();
   else resetCamera();
+
+  if (params.has("debug")) {
+    let meshes = 0;
+    group.traverse((o) => o.isMesh && meshes++);
+    document.getElementById("debug-stats")?.remove();
+    const pre = document.createElement("pre");
+    pre.id = "debug-stats";
+    pre.style.cssText = "position:fixed;bottom:4px;right:4px;color:#8f8;font-size:11px";
+    pre.textContent = JSON.stringify({
+      floor: id,
+      planWalls: plan.walls.length,
+      wallIds: plan.walls.map((w) => w.id),
+      sceneMeshes: meshes,
+      wallHeight: plan.wallHeight,
+    });
+    document.body.append(pre);
+  }
 }
 
 function topCamera() {
@@ -200,7 +284,7 @@ function startPlacement(presetId) {
   });
   ghost.visible = false;
   scene.add(ghost);
-  placing = { preset, ghost };
+  placing = { preset, ghost, rot: 0 };
   document.getElementById("place-hint").hidden = false;
   for (const btn of document.querySelectorAll("#palette button"))
     btn.classList.toggle("active", btn.dataset.preset === presetId);
@@ -241,7 +325,7 @@ function placeAt(point) {
     id: `${p.id}-${Date.now().toString(36)}-${Math.floor(Math.random() * 1e4)}`,
     preset: p.id,
     w: p.w, d: p.d, h: p.h,
-    x: point.x, z: point.z, rot: 0,
+    x: point.x, z: point.z, rot: placing.rot ?? 0,
   };
   items.push(item);
   furnitureRoot.add(buildItem(item));
@@ -288,21 +372,57 @@ function duplicateSelected() {
 }
 
 // ---------- pointer interaction ----------
+const tooltip = document.getElementById("tooltip");
+
+function updateHoverInfo(e) {
+  // walls/fixtures carry userData.info; show it near the cursor
+  const rect = canvas.getBoundingClientRect();
+  pointerNdc.set(
+    ((e.clientX - rect.left) / rect.width) * 2 - 1,
+    -((e.clientY - rect.top) / rect.height) * 2 + 1
+  );
+  raycaster.setFromCamera(pointerNdc, camera);
+  const hit = currentFloor
+    ? raycaster.intersectObjects(currentFloor.group.children, true).find((i) => i.object.userData.info)
+    : null;
+  tooltip.hidden = !hit;
+  if (hit) {
+    tooltip.textContent = hit.object.userData.info;
+    tooltip.style.left = `${e.clientX + 14}px`;
+    tooltip.style.top = `${e.clientY + 14}px`;
+  }
+}
+
 canvas.addEventListener("pointermove", (e) => {
   if (freeLookActive) return;
   if (placing) {
+    tooltip.hidden = true;
     const point = floorPointFromEvent(e);
     if (point) {
       placing.ghost.visible = true;
-      placing.ghost.position.set(point.x, 0, point.z);
+      const p = e.altKey
+        ? point
+        : snapToWalls(point.x, point.z, placing.preset.w / 100, placing.preset.d / 100, placing.rot);
+      placing.ghost.position.set(p.x, 0, p.z);
     }
   } else if (dragging) {
+    tooltip.hidden = true;
     const point = floorPointFromEvent(e);
     if (point) {
-      dragging.group.position.set(point.x - dragging.dx, 0, point.z - dragging.dz);
+      const item = items.find((i) => i.id === dragging.id);
+      const raw = { x: point.x - dragging.dx, z: point.z - dragging.dz };
+      const p = e.altKey || !item
+        ? raw
+        : snapToWalls(raw.x, raw.z, item.w / 100, item.d / 100, item.rot);
+      dragging.group.position.set(p.x, 0, p.z);
     }
+  } else if (pointerDownAt) {
+    tooltip.hidden = true; // orbiting
+  } else {
+    updateHoverInfo(e);
   }
 });
+canvas.addEventListener("pointerleave", () => (tooltip.hidden = true));
 
 canvas.addEventListener("pointerdown", (e) => {
   if (freeLookActive || e.button !== 0) return;
@@ -330,7 +450,8 @@ canvas.addEventListener("pointerup", (e) => {
     : 999;
   if (placing) {
     if (clickDist < 6) {
-      const point = floorPointFromEvent(e);
+      // the ghost already sits at the snapped position
+      const point = placing.ghost.visible ? placing.ghost.position.clone() : floorPointFromEvent(e);
       if (point) placeAt(point);
     }
   } else if (dragging) {
@@ -358,7 +479,16 @@ window.addEventListener("keydown", (e) => {
     case "KeyD": move.r = 1; break;
     case "ShiftLeft": case "ShiftRight": move.sprint = true; break;
     case "KeyF": if (!freeLookActive) enterFreeLook(); break;
-    case "KeyR": if (!freeLookActive) rotateSelected(e.shiftKey ? -15 : 15); break;
+    case "KeyT":
+      if (freeLookActive) break;
+      e.preventDefault();
+      if (placing) {
+        placing.rot = ((placing.rot ?? 0) + (e.shiftKey ? -90 : 90)) % 360;
+        placing.ghost.rotation.y = THREE.MathUtils.degToRad(placing.rot);
+      } else {
+        rotateSelected(e.shiftKey ? -90 : 90);
+      }
+      break;
     case "Delete": case "Backspace": if (!freeLookActive) deleteSelected(); break;
     case "Escape": cancelPlacement(); break;
   }
@@ -424,7 +554,8 @@ document.getElementById("chk-labels").addEventListener("change", (e) => {
 });
 for (const dim of ["dim-w", "dim-d", "dim-h"])
   document.getElementById(dim).addEventListener("change", updateSelectedDims);
-document.getElementById("btn-rotate").addEventListener("click", () => rotateSelected(15));
+for (const btn of document.querySelectorAll("#rot-buttons button"))
+  btn.addEventListener("click", () => rotateSelected(Number(btn.dataset.deg)));
 document.getElementById("btn-delete").addEventListener("click", deleteSelected);
 document.getElementById("btn-duplicate").addEventListener("click", duplicateSelected);
 
@@ -438,10 +569,33 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 
+// floating dimension badge above the selected piece
+const dimBadge = document.getElementById("dim-badge");
+const badgePos = new THREE.Vector3();
+function updateDimBadge() {
+  const item = items.find((i) => i.id === selectedId);
+  const group = item && itemGroup(item.id);
+  if (!item || !group || freeLookActive) {
+    dimBadge.hidden = true;
+    return;
+  }
+  badgePos.set(group.position.x, item.h / 100 + 0.25, group.position.z).project(camera);
+  if (badgePos.z > 1) {
+    dimBadge.hidden = true;
+    return;
+  }
+  const rect = canvas.getBoundingClientRect();
+  dimBadge.hidden = false;
+  dimBadge.textContent = `${item.w} × ${item.d} × ${item.h} cm · ${item.rot ?? 0}°`;
+  dimBadge.style.left = `${rect.left + (badgePos.x * 0.5 + 0.5) * rect.width}px`;
+  dimBadge.style.top = `${rect.top + (-badgePos.y * 0.5 + 0.5) * rect.height}px`;
+}
+
 const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.1);
+  updateDimBadge();
   if (freeLookActive) {
     const speed = move.sprint ? 5.5 : 2.6;
     const fwd = (move.f - move.b) * speed * dt;

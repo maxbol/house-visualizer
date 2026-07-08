@@ -29,7 +29,8 @@ so north points away from the default camera.
 
 ## Wall
 
-Axis-aligned centreline segment.
+Straight centreline segment. Usually axis-aligned, but any angle is allowed
+(the drawing has a slanted hall/kök wall).
 
 ```json
 {
@@ -65,8 +66,14 @@ for the tinted floor overlay and the label, never for wall generation.
 ## Stair
 
 ```json
-{ "type": "spiral", "center": [150, 360], "radius": 80, "rise": 250, "steps": 14 }
+{ "type": "spiral", "center": [150, 360], "radius": 80, "rise": 240, "steps": 12,
+  "sweepDeg": 180, "startDeg": 90 }
 ```
+
+`sweepDeg` (default 300) is the total rotation over the climb; `startDeg`
+(default 0, measured counterclockwise from plan-east) is where the lowest
+tread points. The Robertshöjd stair is a semi-circle: flat side toward the
+landing, treads fanning west.
 
 ## Column
 
@@ -74,7 +81,24 @@ for the tinted floor overlay and the label, never for wall generation.
 { "x": 560, "y": 400, "w": 45, "d": 65, "label": "murstock" }
 ```
 
-`(x, y)` is the south-west corner of the block.
+`(x, y)` is the south-west corner of the block. Columns are full wall height.
+
+## Fixture
+
+Built-ins that are part of the house, as opposed to placeable furniture.
+
+```json
+{ "type": "storage", "x": 137, "y": 20, "w": 51, "d": 132, "h": 210, "label": "G/G/EL" }
+{ "type": "counter", "x": 546, "y": 25, "w": 60, "d": 345, "h": 90 }
+{ "type": "toilet",  "x": 22, "y": 35, "w": 70, "d": 40, "h": 78, "facing": "e" }
+{ "type": "sink",    "x": 170, "y": 148, "w": 45, "d": 55, "h": 85, "facing": "w" }
+{ "type": "bathtub", "x": 22, "y": 95, "w": 75, "d": 163, "h": 55 }
+```
+
+`(x, y)` south-west corner, `w` along x, `d` along y, `h` in cm (must not
+exceed `wallHeight`). `storage` renders as cabinetry with recessed fronts,
+`counter` adds a worktop, `toilet`/`sink`/`bathtub` render as porcelain.
+`facing` (n/s/e/w) is the direction the front points, for oriented types.
 
 ## Pipeline
 
