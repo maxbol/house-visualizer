@@ -9,6 +9,7 @@
     "raster": "assets/raster/ (tools/rasterize.sh, 300 dpi)"
   },
   "envelope": { "width": 626, "depth": 910 },
+  "site": { "latitude": 57.713282977330465, "longitude": 12.059237430882193, "northOffset": 67.5 },
   "wallHeight": 240,
   "walls": [
     {
@@ -82,6 +83,7 @@
     { "x": 571, "y": 373, "w": 35, "d": 72, "label": "murstock (35 enligt måttkedja)" }
   ],
   "assumptions": [
+    "Site: exact coordinates from owner (57.713283N, 12.059237E). Backyard/uteplats side (plan-up) faces WNW (bearing ~292.5) per satellite photo => northOffset 67.5 (true north is 67.5 deg clockwise from plan-up).",
     "CURRENT STATE differs from 1960 drawing: both the sovrum/vardagsrum divider and the wall between the north band and trapprum have been torn down (per owner, 2026) — the living room, former bedroom and stair hall form one open space.",
     "Exterior walls uniformly 20 cm (drawing: tegel/betong, party walls east+west, 'extra ljudisol' west).",
     "No windows in east/west walls: row house (block 26-29), both long sides are party walls.",

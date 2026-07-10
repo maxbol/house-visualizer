@@ -36,6 +36,15 @@
       </section>
 
       <section>
+        <h2>Sol &amp; tid</h2>
+        <label class="field">Datum <input type="date" id="sun-date" /></label>
+        <label class="field">Tid <span id="sun-time-label"></span>
+          <input type="range" id="sun-time" min="0" max="1439" step="10" />
+        </label>
+        <p class="hint" id="sun-info"></p>
+      </section>
+
+      <section>
         <h2>Möbler</h2>
         <div id="palette"></div>
         <p class="hint" id="place-hint" hidden>Klicka på golvet för att placera · Esc avbryter</p>
@@ -80,6 +89,17 @@
     <main id="viewport"><canvas id="canvas"></canvas></main>
   </div>
   <div id="freelook-hud" hidden>WASD gå · Shift spring · Esc lämna</div>
+  <div id="compass" title="P = plan-upp · N = sann norr · gul = solens riktning">
+    <svg viewBox="-50 -50 100 100">
+      <circle r="47" class="ring" />
+      <g id="cmp-plan"><line x1="0" y1="0" x2="0" y2="0" /><path d="M40 0 L30 -5 L30 5 Z" /></g>
+      <g id="cmp-north"><line x1="0" y1="0" x2="0" y2="0" /><path d="M40 0 L30 -5 L30 5 Z" /></g>
+      <g id="cmp-sun"><line x1="0" y1="0" x2="0" y2="0" /><path d="M40 0 L30 -5 L30 5 Z" /></g>
+      <text id="cmp-plan-label">P</text>
+      <text id="cmp-north-label">N</text>
+      <text id="cmp-sun-label">☀</text>
+    </svg>
+  </div>
   <div id="tooltip" hidden></div>
   <div id="dim-badge" hidden></div>
   <script type="module" src="./src/main.js"></script>

@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "../vendor/OrbitControls.js";
 import { PointerLockControls } from "../vendor/PointerLockControls.js";
 import { buildFloor } from "./buildFloor.js";
+import { sunPosition } from "./sun.js";
 import { PRESETS, presetById, buildItem, loadLayout, saveLayout, migrateLegacyStorage } from "./furniture.js";
 
 // Projects and their floors come from plans/index.json.
@@ -62,13 +63,62 @@ scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xfff2dd, 2.2);
 sun.position.set(9, 12, 7);
 sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
-sun.shadow.camera.left = -12;
-sun.shadow.camera.right = 12;
-sun.shadow.camera.top = 12;
-sun.shadow.camera.bottom = -12;
-sun.shadow.bias = -0.0004;
+sun.shadow.mapSize.set(3072, 3072);
+// normalBias (not a big negative bias) is what stops light bleeding through
+// the wall/floor seams without detaching shadows from their casters
+sun.shadow.bias = -0.00012;
+sun.shadow.normalBias = 0.035;
 scene.add(sun);
+scene.add(sun.target);
+
+// ---------- sun / time of day ----------
+let sunDate = new Date();
+
+function updateSun() {
+  if (!currentFloor) return;
+  const site = currentFloor.plan.site ?? { latitude: 57.7, longitude: 12.0, northOffset: 0 };
+  const { azimuth, elevation } = sunPosition(sunDate, site.latitude, site.longitude);
+  const { width, depth } = currentFloor.bounds;
+  const cx = width / 2;
+  const cz = -depth / 2;
+
+  // compass bearing -> world: plan-north is -z, rotated by the plan's northOffset
+  const bearing = ((site.northOffset ?? 0) + azimuth) * (Math.PI / 180);
+  lastSunBearing = bearing;
+  sunAboveHorizon = elevation > 0;
+  const el = Math.max(elevation, 2) * (Math.PI / 180); // keep the light object above ground
+  const R = Math.max(width, depth) * 2.2 + 6;
+  sun.position.set(
+    cx + Math.sin(bearing) * Math.cos(el) * R,
+    Math.sin(el) * R,
+    cz - Math.cos(bearing) * Math.cos(el) * R
+  );
+  sun.target.position.set(cx, 0, cz);
+
+  // fit the shadow frustum tightly around the plan for crisp, leak-free maps
+  const half = Math.hypot(width, depth) / 2 + 2;
+  sun.shadow.camera.left = -half;
+  sun.shadow.camera.right = half;
+  sun.shadow.camera.top = half;
+  sun.shadow.camera.bottom = -half;
+  sun.shadow.camera.near = 0.5;
+  sun.shadow.camera.far = R * 2 + 20;
+  sun.shadow.camera.updateProjectionMatrix();
+
+  // dim + warm the light as the sun drops; night = ambient only
+  const s = Math.max(Math.sin(elevation * (Math.PI / 180)), 0);
+  const up = elevation > 0;
+  sun.visible = up;
+  sun.intensity = up ? 2.5 * Math.min(1, Math.pow(s, 0.55) + 0.08) : 0;
+  sun.color.set(0xffb46b).lerp(new THREE.Color(0xfff2dd), Math.min(1, s * 2.2));
+  hemi.intensity = up ? 0.35 + 0.75 * Math.min(1, s * 1.6) : 0.22;
+
+  const info = document.getElementById("sun-info");
+  if (info)
+    info.textContent = up
+      ? `azimut ${Math.round(azimuth)}° · solhöjd ${Math.round(elevation)}°`
+      : `solen är under horisonten (azimut ${Math.round(azimuth)}°)`;
+}
 
 const ground = new THREE.Mesh(
   new THREE.CircleGeometry(60, 48),
@@ -199,6 +249,7 @@ async function loadFloor(id) {
     btn.classList.toggle("active", btn.dataset.floor === id);
   if (params.get("view") === "top") topCamera();
   else resetCamera();
+  updateSun();
 
   if (params.has("debug")) {
     let meshes = 0;
@@ -637,6 +688,40 @@ for (const p of PRESETS) {
 
 document.getElementById("btn-reset-cam").addEventListener("click", resetCamera);
 document.getElementById("btn-top-cam").addEventListener("click", topCamera);
+
+// sun controls: date picker + minutes-of-day slider (?date=&time= override)
+const sunDateInput = document.getElementById("sun-date");
+const sunTimeInput = document.getElementById("sun-time");
+const sunTimeLabel = document.getElementById("sun-time-label");
+
+function initSunControls() {
+  if (params.get("date")) sunDate = new Date(`${params.get("date")}T12:00:00`);
+  if (params.get("time")) {
+    const [h, m] = params.get("time").split(":").map(Number);
+    sunDate.setHours(h || 0, m || 0, 0, 0);
+  }
+  sunDateInput.value =
+    `${sunDate.getFullYear()}-${String(sunDate.getMonth() + 1).padStart(2, "0")}-${String(sunDate.getDate()).padStart(2, "0")}`;
+  sunTimeInput.value = sunDate.getHours() * 60 + sunDate.getMinutes();
+  syncSunLabel();
+}
+
+function syncSunLabel() {
+  const min = Number(sunTimeInput.value);
+  sunTimeLabel.textContent =
+    `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+}
+
+function onSunControlChange() {
+  const [y, mo, d] = sunDateInput.value.split("-").map(Number);
+  const min = Number(sunTimeInput.value);
+  if (y) sunDate = new Date(y, mo - 1, d, Math.floor(min / 60), min % 60);
+  syncSunLabel();
+  updateSun();
+}
+sunDateInput.addEventListener("change", onSunControlChange);
+sunTimeInput.addEventListener("input", onSunControlChange);
+initSunControls();
 document.getElementById("chk-ceiling").addEventListener("change", (e) => {
   currentFloor?.group.getObjectByName("ceiling") &&
     (currentFloor.group.getObjectByName("ceiling").visible = e.target.checked);
@@ -661,6 +746,48 @@ function resize() {
 }
 window.addEventListener("resize", resize);
 resize();
+
+// ---------- compass (plan-up, true north, sun bearing) ----------
+// Screen-space angles are found by projecting world directions through the
+// camera, so the arrows stay truthful while orbiting or in free look.
+const cmpA = new THREE.Vector3();
+const cmpB = new THREE.Vector3();
+let lastSunBearing = 0;
+let sunAboveHorizon = true;
+
+function screenAngle(dx, dz) {
+  const { width, depth } = currentFloor.bounds;
+  const cx = width / 2;
+  const cz = -depth / 2;
+  cmpA.set(cx, 0, cz).project(camera);
+  cmpB.set(cx + dx, 0, cz + dz).project(camera);
+  if (Math.abs(cmpA.z) > 1 || Math.abs(cmpB.z) > 1) return null; // behind camera
+  return Math.atan2(-(cmpB.y - cmpA.y), cmpB.x - cmpA.x); // SVG y points down
+}
+
+function setCompassArrow(id, angle, dim = false) {
+  const g = document.getElementById(id);
+  const label = document.getElementById(`${id}-label`);
+  if (angle === null) {
+    g.style.opacity = label.style.opacity = 0;
+    return;
+  }
+  g.style.opacity = label.style.opacity = dim ? 0.3 : 1;
+  const deg = (angle * 180) / Math.PI;
+  g.querySelector("line").setAttribute("x2", Math.cos(angle) * 32);
+  g.querySelector("line").setAttribute("y2", Math.sin(angle) * 32);
+  g.querySelector("path").setAttribute("transform", `rotate(${deg})`);
+  label.setAttribute("x", Math.cos(angle) * 41);
+  label.setAttribute("y", Math.sin(angle) * 41 + 1);
+}
+
+function updateCompass() {
+  if (!currentFloor) return;
+  const northOffset = ((currentFloor.plan.site?.northOffset ?? 0) * Math.PI) / 180;
+  setCompassArrow("cmp-plan", screenAngle(0, -1));
+  setCompassArrow("cmp-north", screenAngle(Math.sin(northOffset), -Math.cos(northOffset)));
+  setCompassArrow("cmp-sun", screenAngle(Math.sin(lastSunBearing), -Math.cos(lastSunBearing)), !sunAboveHorizon);
+}
 
 // floating dimension badge above the selected piece
 const dimBadge = document.getElementById("dim-badge");
@@ -689,6 +816,7 @@ function animate() {
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.1);
   updateDimBadge();
+  updateCompass();
   if (freeLookActive) {
     const speed = move.sprint ? 5.5 : 2.6;
     const fwd = (move.f - move.b) * speed * dt;

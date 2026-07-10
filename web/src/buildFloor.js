@@ -94,6 +94,7 @@ function buildWall(wall, defaultHeight, group) {
     const mesh = box(b - a, v1 - v0, thick, mat, ox + ux * mid, (v0 + v1) / 2, oz + uz * mid);
     mesh.rotation.y = angle;
     mesh.userData.info = info;
+    if (mat === MAT.glass) mesh.castShadow = false; // windows let the sun through
     group.add(mesh);
   };
 
@@ -245,6 +246,17 @@ export function buildFloor(plan) {
   ceiling.name = "ceiling";
   ceiling.visible = false;
   group.add(ceiling);
+
+  // shadow-only roof: invisible to the camera but always blocks the sun, so
+  // interiors are lit through windows instead of straight through the roof
+  const roof = new THREE.Mesh(
+    new THREE.BoxGeometry(W, 0.08, D),
+    new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false })
+  );
+  roof.position.set(W / 2, plan.wallHeight * S + 0.04, -D / 2);
+  roof.castShadow = true;
+  roof.name = "roof-shadow";
+  group.add(roof);
 
   group.userData.bounds = { width: W, depth: D, height: plan.wallHeight * S };
   return group;

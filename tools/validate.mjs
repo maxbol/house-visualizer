@@ -27,6 +27,13 @@ function validatePlan(file) {
   const { width: W, depth: D } = plan.envelope ?? {};
   if (!(W > 0 && D > 0)) fail(id, `envelope must have positive width/depth`);
   if (!(plan.wallHeight > 0)) fail(id, `wallHeight must be positive`);
+  if (plan.site !== undefined) {
+    const { latitude, longitude, northOffset } = plan.site;
+    if (!(latitude >= -90 && latitude <= 90)) fail(id, `site.latitude ${latitude} outside [-90, 90]`);
+    if (!(longitude >= -180 && longitude <= 180)) fail(id, `site.longitude ${longitude} outside [-180, 180]`);
+    if (northOffset !== undefined && !Number.isFinite(northOffset))
+      fail(id, `site.northOffset must be a number (degrees)`);
+  }
   const inEnvelope = (x, y) =>
     x >= -EPS && x <= W + EPS && y >= -EPS && y <= D + EPS;
 

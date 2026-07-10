@@ -20,6 +20,7 @@ so north points away from the default camera.
 | `units`         | `"cm"`   | must be `"cm"` (validator enforces)                |
 | `source`        | object   | provenance: pdf file, page, scale, tracing notes   |
 | `envelope`      | object   | `{ width, depth }` exterior bounding box           |
+| `site`          | object   | `{ latitude, longitude, northOffset }` for the sun model — `northOffset` is degrees true north is rotated clockwise from plan-up |
 | `wallHeight`    | number   | default floor-to-ceiling height for this floor     |
 | `walls`         | Wall[]   | every wall segment, exterior and interior          |
 | `rooms`         | Room[]   | floor polygons, used for coloring + labels         |

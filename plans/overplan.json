@@ -9,6 +9,7 @@
     "raster": "assets/raster/ (tools/rasterize.sh, 300 dpi)"
   },
   "envelope": { "width": 626, "depth": 910 },
+  "site": { "latitude": 57.713282977330465, "longitude": 12.059237430882193, "northOffset": 67.5 },
   "wallHeight": 240,
   "walls": [
     {

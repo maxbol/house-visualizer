@@ -8,6 +8,7 @@
     "plan": "top: floor plan, bottom: section"
   },
   "envelope": { "width": 330, "depth": 220 },
+  "site": { "latitude": 58.32712809978276, "longitude": 11.793014223410102, "northOffset": 135 },
   "wallHeight": 215,
   "walls": [
     {
@@ -44,6 +45,7 @@
     "Window vertical placement from the section: sill 110, glass 45 high (head 155), 60 cm wall above; wall height 215 for both north and south walls, flat ceiling assumed.",
     "Both 115 windows placed 100 cm from the west corner per both chains (100+115+115=330).",
     "Door on the west wall, 70 cm from each corner (70+80+70=220); door height 195 assumed (not on sketch). No swing drawn.",
-    "Sketch chains sum exactly on all sides, so measurements taken at face value."
+    "Sketch chains sum exactly on all sides, so measurements taken at face value.",
+    "Site: exact coordinates from owner (58.327128N, 11.793014E, Uddevalla). Plan-up faces south-west (bearing 225) per owner => northOffset 135 (true north is 135 deg clockwise from plan-up)."
   ]
 }
