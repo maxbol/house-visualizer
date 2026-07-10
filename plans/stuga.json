@@ -7,35 +7,120 @@
     "drawing": "Hand-drawn plan + north/south wall section, single-room cottage",
     "plan": "top: floor plan, bottom: section"
   },
-  "envelope": { "width": 330, "depth": 220 },
-  "site": { "latitude": 58.32712809978276, "longitude": 11.793014223410102, "northOffset": 135 },
+  "envelope": {
+    "width": 330,
+    "depth": 220
+  },
+  "site": {
+    "latitude": 58.32712809978276,
+    "longitude": 11.793014223410102,
+    "northOffset": 135
+  },
   "wallHeight": 215,
   "walls": [
     {
       "id": "ext-south",
-      "from": [0, 5], "to": [330, 5], "thickness": 10,
+      "from": [
+        0,
+        5
+      ],
+      "to": [
+        330,
+        5
+      ],
+      "thickness": 10,
       "openings": [
-        { "type": "window", "offset": 100, "width": 115, "sill": 110, "head": 155, "label": "fönster söder" }
+        {
+          "type": "window",
+          "offset": 100,
+          "width": 115,
+          "sill": 110,
+          "head": 155,
+          "label": "fönster söder"
+        }
       ]
     },
     {
       "id": "ext-north",
-      "from": [0, 215], "to": [330, 215], "thickness": 10,
+      "from": [
+        0,
+        215
+      ],
+      "to": [
+        330,
+        215
+      ],
+      "thickness": 10,
       "openings": [
-        { "type": "window", "offset": 100, "width": 115, "sill": 110, "head": 155, "label": "fönster norr" }
+        {
+          "type": "window",
+          "offset": 100,
+          "width": 115,
+          "sill": 100,
+          "head": 175,
+          "label": "fönster norr"
+        }
       ]
     },
     {
       "id": "ext-west",
-      "from": [5, 0], "to": [5, 220], "thickness": 10,
+      "from": [
+        5,
+        0
+      ],
+      "to": [
+        5,
+        220
+      ],
+      "thickness": 10,
       "openings": [
-        { "type": "door", "offset": 70, "width": 80, "sill": 0, "head": 195, "label": "dörr" }
+        {
+          "type": "door",
+          "offset": 70,
+          "width": 80,
+          "sill": 0,
+          "head": 195,
+          "label": "dörr"
+        }
       ]
     },
-    { "id": "ext-east", "from": [325, 0], "to": [325, 220], "thickness": 10, "openings": [] }
+    {
+      "id": "ext-east",
+      "from": [
+        325,
+        0
+      ],
+      "to": [
+        325,
+        220
+      ],
+      "thickness": 10,
+      "openings": []
+    }
   ],
   "rooms": [
-    { "name": "STUGA", "poly": [[10, 10], [320, 10], [320, 210], [10, 210]], "color": "#c9bda6" }
+    {
+      "name": "STUGA",
+      "poly": [
+        [
+          10,
+          10
+        ],
+        [
+          320,
+          10
+        ],
+        [
+          320,
+          210
+        ],
+        [
+          10,
+          210
+        ]
+      ],
+      "color": "#c9bda6"
+    }
   ],
   "stairs": [],
   "columns": [],
