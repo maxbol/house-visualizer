@@ -1,0 +1,19 @@
+{
+  "projects": [
+    {
+      "id": "robertshojd",
+      "name": "Robertshöjd hustyp BAS",
+      "floors": [
+        { "id": "bottenplan", "label": "Bottenplan" },
+        { "id": "overplan", "label": "Överplan" }
+      ]
+    },
+    {
+      "id": "stugan",
+      "name": "Stugan",
+      "floors": [
+        { "id": "stuga", "label": "Stugan" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "id": "stuga",
+  "name": "Stugan",
+  "units": "cm",
+  "source": {
+    "image": "assets/att.MgeLSU-2iqCFSXQ4RZ_GaPawulp_uF0oMb7Vs_Lq83I.JPG",
+    "drawing": "Hand-drawn plan + north/south wall section, single-room cottage",
+    "plan": "top: floor plan, bottom: section"
+  },
+  "envelope": { "width": 330, "depth": 220 },
+  "wallHeight": 215,
+  "walls": [
+    {
+      "id": "ext-south",
+      "from": [0, 5], "to": [330, 5], "thickness": 10,
+      "openings": [
+        { "type": "window", "offset": 100, "width": 115, "sill": 110, "head": 155, "label": "fönster söder" }
+      ]
+    },
+    {
+      "id": "ext-north",
+      "from": [0, 215], "to": [330, 215], "thickness": 10,
+      "openings": [
+        { "type": "window", "offset": 100, "width": 115, "sill": 110, "head": 155, "label": "fönster norr" }
+      ]
+    },
+    {
+      "id": "ext-west",
+      "from": [5, 0], "to": [5, 220], "thickness": 10,
+      "openings": [
+        { "type": "door", "offset": 70, "width": 80, "sill": 0, "head": 195, "label": "dörr" }
+      ]
+    },
+    { "id": "ext-east", "from": [325, 0], "to": [325, 220], "thickness": 10, "openings": [] }
+  ],
+  "rooms": [
+    { "name": "STUGA", "poly": [[10, 10], [320, 10], [320, 210], [10, 210]], "color": "#c9bda6" }
+  ],
+  "stairs": [],
+  "columns": [],
+  "fixtures": [],
+  "assumptions": [
+    "330×220 read as exterior envelope; wall thickness 10 cm assumed (not on sketch).",
+    "Window vertical placement from the section: sill 110, glass 45 high (head 155), 60 cm wall above; wall height 215 for both north and south walls, flat ceiling assumed.",
+    "Both 115 windows placed 100 cm from the west corner per both chains (100+115+115=330).",
+    "Door on the west wall, 70 cm from each corner (70+80+70=220); door height 195 assumed (not on sketch). No swing drawn.",
+    "Sketch chains sum exactly on all sides, so measurements taken at face value."
+  ]
+}

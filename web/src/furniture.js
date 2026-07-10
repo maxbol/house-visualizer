@@ -201,16 +201,28 @@ export function buildItem(item) {
   return group;
 }
 
-const storageKey = (floorId) => `house-visualizer:furniture:${floorId}`;
+const storageKey = (projectId, floorId) => `house-visualizer:furniture:${projectId}:${floorId}`;
+const legacyKey = (floorId) => `house-visualizer:furniture:${floorId}`; // pre-multi-project
 
-export function loadLayout(floorId) {
+export function loadLayout(projectId, floorId) {
   try {
-    return JSON.parse(localStorage.getItem(storageKey(floorId)) ?? "[]");
+    return JSON.parse(localStorage.getItem(storageKey(projectId, floorId)) ?? "[]");
   } catch {
     return [];
   }
 }
 
-export function saveLayout(floorId, items) {
-  localStorage.setItem(storageKey(floorId), JSON.stringify(items));
+export function saveLayout(projectId, floorId, items) {
+  localStorage.setItem(storageKey(projectId, floorId), JSON.stringify(items));
+}
+
+// One-time copy of pre-multi-project layouts (keyed by floor only) into the
+// project that now owns that floor. Legacy keys are left in place.
+export function migrateLegacyStorage(manifest) {
+  for (const p of manifest.projects ?? [])
+    for (const f of p.floors ?? []) {
+      const legacy = localStorage.getItem(legacyKey(f.id));
+      if (legacy && !localStorage.getItem(storageKey(p.id, f.id)))
+        localStorage.setItem(storageKey(p.id, f.id), legacy);
+    }
 }

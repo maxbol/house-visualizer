@@ -47,6 +47,17 @@ button.active { background: #4c5a3f; border-color: #6a7d58; }
 button.danger:hover { background: #6b3a34; border-color: #8d4c43; }
 .btn-row { display: flex; flex-wrap: wrap; gap: 6px; }
 
+#project-select {
+  width: 100%;
+  font: inherit;
+  font-size: 12.5px;
+  color: #d8d5ce;
+  background: #33363d;
+  border: 1px solid #43464e;
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
 #palette { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 #palette button { text-align: left; line-height: 1.25; padding: 7px 9px; }
 #palette button small { display: block; color: #8f8c84; font-size: 10px; }

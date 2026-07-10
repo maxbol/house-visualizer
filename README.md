@@ -70,7 +70,18 @@ bookshelf visibly nearly reaches the 240 cm ceiling.
 
 | path | |
 |---|---|
-| `assets/` | source PDF (+ `raster/`, generated, git-ignored) |
-| `plans/` | schema doc + traced floor plan JSONs (the source of truth) |
-| `tools/` | `rasterize.sh`, `validate.mjs` |
+| `assets/` | source drawings (+ `raster/`, generated, git-ignored) |
+| `plans/` | schema doc, project manifest (`index.json`), traced floor plan JSONs |
+| `tools/` | `rasterize.sh`, `validate.mjs`, `serve.py` |
 | `web/` | static three.js app (`src/`, vendored libs in `vendor/`) |
+
+## Projects
+
+`plans/index.json` lists projects, each with an ordered list of floors whose
+ids map to `plans/<id>.json` (floor ids are globally unique — the validator
+enforces this and that every plan file is referenced). The UI has a project
+selector; furniture layouts are stored per project + floor
+(`house-visualizer:furniture:<project>:<floor>` in localStorage). Layouts
+saved before the multi-project split are migrated automatically on first
+load, and old exported layout files import cleanly (floors are matched to
+their owning project by id).

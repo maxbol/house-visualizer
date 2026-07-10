@@ -151,12 +151,36 @@ function validatePlan(file) {
   );
 }
 
-const files = readdirSync(plansDir).filter((f) => f.endsWith(".json"));
+const files = readdirSync(plansDir).filter((f) => f.endsWith(".json") && f !== "index.json");
 if (files.length === 0) {
   console.error("no plan JSONs found in plans/");
   process.exit(1);
 }
 for (const f of files) validatePlan(f);
+
+// --- project manifest ---
+try {
+  const manifest = JSON.parse(readFileSync(join(plansDir, "index.json"), "utf8"));
+  const seenProjects = new Set();
+  const seenFloors = new Set();
+  for (const p of manifest.projects ?? []) {
+    if (!p.id || !p.name) fail("index", `project missing id/name`);
+    if (seenProjects.has(p.id)) fail("index", `duplicate project id "${p.id}"`);
+    seenProjects.add(p.id);
+    if (!p.floors?.length) fail("index", `project "${p.id}" has no floors`);
+    for (const f of p.floors ?? []) {
+      if (seenFloors.has(f.id)) fail("index", `floor id "${f.id}" used by more than one project (ids must be globally unique)`);
+      seenFloors.add(f.id);
+      if (!files.includes(`${f.id}.json`)) fail("index", `project "${p.id}" floor "${f.id}": plans/${f.id}.json not found`);
+    }
+  }
+  const listed = new Set([...seenFloors].map((f) => `${f}.json`));
+  for (const f of files) if (!listed.has(f)) fail("index", `plan ${f} not referenced by any project`);
+  console.log(`manifest: ${manifest.projects?.length ?? 0} project(s), ${seenFloors.size} floor(s)`);
+} catch (e) {
+  if (e.code === "ENOENT") fail("index", "plans/index.json manifest missing");
+  else if (failures === 0) throw e;
+}
 
 if (failures) {
   console.error(`\n${failures} violation(s).`);

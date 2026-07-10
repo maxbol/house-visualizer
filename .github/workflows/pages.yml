@@ -1,0 +1,56 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate floor plans
+        run: node tools/validate.mjs
+
+      - name: Stage site
+        # The app is fully static: web/ plus the plan JSONs it fetches via
+        # ../plans/. A root index.html redirects to web/.
+        run: |
+          mkdir -p _site
+          cp -r web _site/web
+          cp -r plans _site/plans
+          touch _site/.nojekyll
+          cat > _site/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <meta http-equiv="refresh" content="0; url=./web/" />
+            <title>House Visualizer</title>
+          </head>
+          <body><a href="./web/">House Visualizer</a></body>
+          </html>
+          EOF
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

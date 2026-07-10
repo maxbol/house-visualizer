@@ -2,15 +2,14 @@ import * as THREE from "three";
 import { OrbitControls } from "../vendor/OrbitControls.js";
 import { PointerLockControls } from "../vendor/PointerLockControls.js";
 import { buildFloor } from "./buildFloor.js";
-import { PRESETS, presetById, buildItem, loadLayout, saveLayout } from "./furniture.js";
+import { PRESETS, presetById, buildItem, loadLayout, saveLayout, migrateLegacyStorage } from "./furniture.js";
 
-const FLOORS = [
-  { id: "bottenplan", label: "Bottenplan" },
-  { id: "overplan", label: "Överplan" },
-];
+// Projects and their floors come from plans/index.json.
+let manifest = { projects: [] };
+let currentProject = null;
 
-// URL params: ?floor=overplan picks the start floor, ?demo=1 furnishes an
-// empty floor with a sample layout (not persisted).
+// URL params: ?project=stugan / ?floor=overplan pick the start view,
+// ?demo=1 furnishes an empty floor with a sample layout (not persisted).
 const params = new URLSearchParams(location.search);
 
 function demoLayout(floorId) {
@@ -18,6 +17,8 @@ function demoLayout(floorId) {
     const p = presetById(preset);
     return { id: `demo-${preset}-${x}-${z}`, preset, w: p.w, d: p.d, h: p.h, ...dims, x, z, rot };
   };
+  if (floorId === "stuga")
+    return [mk("bed-single", 2.75, -1.1), mk("table-dining", 1.2, -1.55), mk("chair", 1.2, -0.95, 180)];
   if (floorId === "bottenplan")
     return [
       mk("sofa", 4.35, -7.9, 180),
@@ -30,14 +31,16 @@ function demoLayout(floorId) {
       mk("bed-double", 1.35, -7.7),
       mk("sideboard", 5.75, -5.2, -90),
     ];
-  return [
-    mk("bed-double", 1.2, -7.6),
-    mk("bed-single", 4.2, -8.2, -90),
-    mk("desk", 5.3, -6.2, 180),
-    mk("bed-single", 3.2, -1.2, 90),
-    mk("bookshelf", 5.5, -3.0, 180),
-    mk("wardrobe", 1.0, -3.2, 180),
-  ];
+  if (floorId === "overplan")
+    return [
+      mk("bed-double", 1.2, -7.6),
+      mk("bed-single", 4.2, -8.2, -90),
+      mk("desk", 5.3, -6.2, 180),
+      mk("bed-single", 3.2, -1.2, 90),
+      mk("bookshelf", 5.5, -3.0, 180),
+      mk("wardrobe", 1.0, -3.2, 180),
+    ];
+  return [];
 }
 
 // ---------- renderer / scene ----------
@@ -187,7 +190,7 @@ async function loadFloor(id) {
   group.getObjectByName("ceiling").visible = document.getElementById("chk-ceiling").checked;
   group.getObjectByName("room-labels").visible = document.getElementById("chk-labels").checked;
 
-  items = loadLayout(id);
+  items = loadLayout(currentProject.id, id);
   if (params.has("demo") && items.length === 0) items = demoLayout(id);
   snapFaces = computeSnapFaces(plan);
   rebuildFurniture();
@@ -219,7 +222,8 @@ function topCamera() {
   const { width, depth } = currentFloor.bounds;
   const cx = width / 2;
   const cz = -depth / 2;
-  camera.position.set(cx, 13.5, cz + 0.001); // near-vertical, from the south: north up on screen
+  const m = Math.max(width, depth, 4.5);
+  camera.position.set(cx, m * 1.5, cz + 0.001); // near-vertical, from the south: north up on screen
   orbit.target.set(cx, 0, cz);
   orbit.update();
 }
@@ -228,8 +232,9 @@ function resetCamera() {
   const { width, depth } = currentFloor.bounds;
   const cx = width / 2;
   const cz = -depth / 2;
-  // fixed start angle: from the south-east, 40 degrees up
-  camera.position.set(cx + 6.4, 7.6, cz + 8.2);
+  // fixed start angle: from the south-east, ~40 degrees up, scaled to the plan
+  const m = Math.max(width, depth, 4.5);
+  camera.position.set(cx + m * 0.7, m, cz + m * 0.9);
   orbit.target.set(cx, 0.6, cz);
   orbit.update();
 }
@@ -253,7 +258,7 @@ function applySelectionTint() {
 }
 
 function persist() {
-  saveLayout(currentFloor.id, items);
+  saveLayout(currentProject.id, currentFloor.id, items);
 }
 
 function select(id) {
@@ -532,12 +537,16 @@ document.getElementById("btn-freelook").addEventListener("click", enterFreeLook)
 function exportLayouts() {
   persist(); // flush current floor to localStorage first
   const layouts = {};
-  for (const f of FLOORS) layouts[f.id] = f.id === currentFloor?.id ? items : loadLayout(f.id);
-  const payload = { app: "house-visualizer", version: 1, saved: new Date().toISOString(), layouts };
+  for (const f of currentProject.floors)
+    layouts[f.id] = f.id === currentFloor?.id ? items : loadLayout(currentProject.id, f.id);
+  const payload = {
+    app: "house-visualizer", version: 2, project: currentProject.id,
+    saved: new Date().toISOString(), layouts,
+  };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `mobler-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `mobler-${currentProject.id}-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   URL.revokeObjectURL(a.href);
 }
@@ -568,11 +577,17 @@ async function importLayouts(file) {
     alert("Ogiltig layoutfil: hittade varken \"layouts\" eller en möbellista.");
     return;
   }
+  // Resolve each floor to its owning project: the file's project field if it
+  // matches, else whichever project contains that floor id (floor ids are
+  // globally unique — this is how pre-multi-project (v1) files migrate).
   let applied = 0;
   for (const [floorId, list] of Object.entries(layouts)) {
-    const clean = FLOORS.some((f) => f.id === floorId) ? sanitizeItems(list) : null;
+    const owner =
+      manifest.projects.find((p) => p.id === data.project && p.floors.some((f) => f.id === floorId)) ??
+      manifest.projects.find((p) => p.floors.some((f) => f.id === floorId));
+    const clean = owner ? sanitizeItems(list) : null;
     if (!clean) continue;
-    saveLayout(floorId, clean);
+    saveLayout(owner.id, floorId, clean);
     applied++;
   }
   if (!applied) {
@@ -581,7 +596,7 @@ async function importLayouts(file) {
   }
   cancelPlacement();
   select(null);
-  items = loadLayout(currentFloor.id);
+  items = loadLayout(currentProject.id, currentFloor.id);
   rebuildFurniture();
 }
 
@@ -594,13 +609,21 @@ layoutFileInput.addEventListener("change", () => {
 });
 
 // ---------- UI wiring ----------
-const floorButtons = document.getElementById("floor-buttons");
-for (const f of FLOORS) {
-  const btn = document.createElement("button");
-  btn.textContent = f.label;
-  btn.dataset.floor = f.id;
-  btn.addEventListener("click", () => loadFloor(f.id));
-  floorButtons.append(btn);
+async function loadProject(projectId, floorId) {
+  currentProject = manifest.projects.find((p) => p.id === projectId) ?? manifest.projects[0];
+  document.getElementById("project-select").value = currentProject.id;
+  document.getElementById("app-subtitle").textContent = currentProject.name;
+  const floorButtons = document.getElementById("floor-buttons");
+  floorButtons.innerHTML = "";
+  for (const f of currentProject.floors) {
+    const btn = document.createElement("button");
+    btn.textContent = f.label;
+    btn.dataset.floor = f.id;
+    btn.addEventListener("click", () => loadFloor(f.id));
+    floorButtons.append(btn);
+  }
+  const wanted = currentProject.floors.some((f) => f.id === floorId) ? floorId : currentProject.floors[0].id;
+  await loadFloor(wanted);
 }
 
 const palette = document.getElementById("palette");
@@ -679,8 +702,31 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-const startFloor = FLOORS.find((f) => f.id === params.get("floor"))?.id ?? FLOORS[0].id;
-loadFloor(startFloor).then(animate).catch((err) => {
+async function boot() {
+  const res = await fetch("../plans/index.json", { cache: "no-store" });
+  if (!res.ok) throw new Error(`failed to load project manifest: ${res.status}`);
+  manifest = await res.json();
+  migrateLegacyStorage(manifest); // pick up pre-multi-project layouts
+
+  const select = document.getElementById("project-select");
+  for (const p of manifest.projects) {
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    opt.textContent = p.name;
+    select.append(opt);
+  }
+  select.addEventListener("change", () => loadProject(select.value));
+
+  const wantedFloor = params.get("floor");
+  const projectId =
+    params.get("project") ??
+    manifest.projects.find((p) => p.floors.some((f) => f.id === wantedFloor))?.id ??
+    manifest.projects[0].id;
+  await loadProject(projectId, wantedFloor ?? undefined);
+  animate();
+}
+
+boot().catch((err) => {
   document.body.insertAdjacentHTML("beforeend", `<pre style="position:fixed;top:10px;right:10px;color:#f88">${err}</pre>`);
   console.error(err);
 });
