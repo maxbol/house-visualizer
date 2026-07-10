@@ -8,8 +8,8 @@
     "plan": "top: floor plan, bottom: section"
   },
   "envelope": {
-    "width": 330,
-    "depth": 220
+    "width": 339,
+    "depth": 222
   },
   "site": {
     "latitude": 58.32712809978276,
@@ -25,14 +25,14 @@
         5
       ],
       "to": [
-        330,
+        339,
         5
       ],
       "thickness": 10,
       "openings": [
         {
           "type": "window",
-          "offset": 100,
+          "offset": 105,
           "width": 115,
           "sill": 110,
           "head": 155,
@@ -44,17 +44,17 @@
       "id": "ext-north",
       "from": [
         0,
-        215
+        217
       ],
       "to": [
-        330,
-        215
+        339,
+        217
       ],
       "thickness": 10,
       "openings": [
         {
           "type": "window",
-          "offset": 100,
+          "offset": 105,
           "width": 115,
           "sill": 100,
           "head": 175,
@@ -70,7 +70,7 @@
       ],
       "to": [
         5,
-        220
+        222
       ],
       "thickness": 10,
       "openings": [
@@ -87,12 +87,12 @@
     {
       "id": "ext-east",
       "from": [
-        325,
+        334,
         0
       ],
       "to": [
-        325,
-        220
+        334,
+        222
       ],
       "thickness": 10,
       "openings": []
@@ -107,16 +107,16 @@
           10
         ],
         [
-          320,
+          329,
           10
         ],
         [
-          320,
-          210
+          329,
+          212
         ],
         [
           10,
-          210
+          212
         ]
       ],
       "color": "#c9bda6"
